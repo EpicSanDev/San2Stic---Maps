@@ -1,0 +1,68 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - main # Ou 'master' si c'est votre branche principale
+    paths:
+      - 'backend/**'
+      - 'infra/Dockerfile.backend'
+      - 'kubernetes/**'
+      - '.github/workflows/backend-ci-cd.yml'
+
+jobs:
+  build-and-deploy-backend:
+    name: Build and Deploy Backend
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write' # Nécessaire pour Workload Identity Federation
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: '${{ secrets.GCP_WIF_PROVIDER }}' # ex: projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider
+          service_account: '${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}' # ex: san2stic-backend-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker europe-west1-docker.pkg.dev # Ajustez la région si nécessaire
+
+      - name: Build and Push Docker image
+        env:
+          PROJECT_ID: '${{ secrets.GCP_PROJECT_ID }}'
+          IMAGE_NAME: san2stic/backend
+          IMAGE_TAG_SHA: europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/san2stic/backend:${{ github.sha }}
+          IMAGE_TAG_LATEST: europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/san2stic/backend:latest
+        run: |
+          docker build -t $IMAGE_TAG_SHA -t $IMAGE_TAG_LATEST -f infra/Dockerfile.backend backend/
+          docker push $IMAGE_TAG_SHA
+          docker push $IMAGE_TAG_LATEST
+
+      - name: Connect to GKE Cluster
+        run: |
+          gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} \
+            --zone ${{ secrets.GKE_CLUSTER_ZONE }} \
+            --project ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Update Kubernetes manifests with Kustomize
+        # Assurez-vous que kustomize est installé sur l'runner ou utilisez une action pour cela si nécessaire
+        # Par exemple: sudo apt-get update && sudo apt-get install -y kustomize
+        # Ou utilisez une image Docker qui a kustomize
+        run: |
+          cd kubernetes
+          # Assurez-vous que votre kustomization.yaml est configuré pour permettre le remplacement de l'image
+          # par exemple, une image nommée 'backend-image'
+          kustomize edit set image backend-image=europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/san2stic/backend:${{ github.sha }}
+          # Si le nom de l'image dans kustomization.yaml est le chemin complet, utilisez:
+          # kustomize edit set image europe-west1-docker.pkg.dev/YOUR_PROJECT_ID/san2stic/backend=europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/san2stic/backend:${{ github.sha }}
+          cd ..
+
+      - name: Deploy to GKE
+        run: kubectl apply -k kubernetes/

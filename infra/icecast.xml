@@ -1,0 +1,25 @@
+<icecast>
+  <location>Earth</location>
+  <admin>admin@san2stic.example.com</admin>
+  <hostname>0.0.0.0</hostname>
+  <limits>
+    <clients>100</clients>
+    <sources>2</sources>
+    <queue-size>524288</queue-size>
+    <client-timeout>30</client-timeout>
+  </limits>
+  <authentication>
+    <source-password>changeme_source_password</source-password>
+    <relay-password>changeme_relay_password</relay-password>
+    <admin-user>admin</admin-user>
+    <admin-password>changeme_admin_password</admin-password>
+  </authentication>
+  <listen-socket>
+    <port>8000</port>
+  </listen-socket>
+  <mount>
+    <mount-name>/stream</mount-name>
+    <password>changeme_stream_source_password</password>
+    <max-listeners>100</max-listeners>
+  </mount>
+</icecast>

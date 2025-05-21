@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../infra/Dockerfile.backend
+    ports:
+      - "${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}" # Le port interne du backend est supposé être 4000
+    env_file:
+      - .env # Charge les variables depuis le fichier .env à la racine
+    volumes:
+      - ./backend:/usr/src/app # Montage du code source pour le développement
+      # Montez le fichier de clé GCP s'il existe à la racine du projet.
+      # Le chemin GCP_KEYFILE_PATH dans .env doit correspondre au chemin cible dans le conteneur.
+      - ./gcp-keyfile.json:${GCP_KEYFILE_PATH:-/usr/src/app/gcp-keyfile.json}
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  icecast:
+    build:
+      context: ./infra
+      dockerfile: Dockerfile.icecast
+    ports:
+      - "${ICECAST_PORT:-8000}:8000" # Port standard d'Icecast
+    env_file:
+      - .env # Charge les variables depuis le fichier .env
+    # Les variables d'environnement suivantes sont des exemples et peuvent être
+    # utilisées par un script d'entrée dans votre Dockerfile.icecast pour configurer Icecast.
+    environment:
+      ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD}
+      ICECAST_RELAY_PASSWORD: ${ICECAST_RELAY_PASSWORD}
+      ICECAST_ADMIN_USERNAME: ${ICECAST_ADMIN_USERNAME}
+      ICECAST_ADMIN_PASSWORD: ${ICECAST_ADMIN_PASSWORD}
+      ICECAST_HOSTNAME: ${ICECAST_HOSTNAME}
+    volumes:
+      # Monte le fichier de configuration icecast.xml pour refléter les changements sans rebuild.
+      # Assurez-vous que le Dockerfile.icecast est compatible avec cette approche
+      # (par exemple, il ne doit pas écraser ce fichier après le montage).
+      - ./infra/icecast.xml:/etc/icecast2/icecast.xml
+    networks:
+      - app-network
+
+  db:
+    image: postgres:13-alpine # Utilisation d'une image Alpine pour la légèreté
+    ports:
+      # Mappe le port PostgreSQL à l'hôte pour un accès direct si nécessaire.
+      - "${DB_PORT:-5432}:5432"
+    env_file:
+      - .env # Charge POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persistance des données PostgreSQL
+    networks:
+      - app-network
+
+volumes:
+  postgres_data: # Déclaration du volume nommé pour la base de données
+
+networks:
+  app-network: # Réseau commun pour permettre la communication entre services
+    driver: bridge

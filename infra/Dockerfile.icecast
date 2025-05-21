@@ -1,0 +1,11 @@
+# Utiliser une image Icecast existante
+FROM bucharestgold/icecast:latest
+
+# Copier le fichier de configuration Icecast personnalisé
+COPY icecast.xml /etc/icecast2/icecast.xml
+
+# Exposer le port d'Icecast
+EXPOSE 8000
+
+# La commande par défaut de l'image de base devrait démarrer Icecast
+# avec la configuration fournie.
