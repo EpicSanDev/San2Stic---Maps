@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios'; // Assurez-vous qu'axios est listé dans les dépendances de package.json
 
-const RadioPlayer = ({ streamUrl = 'http://localhost:8000/stream', metadataUrl = 'http://localhost:8000/status-json.xsl' }) => {
+const RadioPlayer = () => {
+  const streamUrl = process.env.REACT_APP_ICECAST_STREAM_URL || 'http://localhost:8000/stream';
+  const metadataUrl = process.env.REACT_APP_ICECAST_METADATA_URL || 'http://localhost:8000/status-json.xsl';
   const [isPlaying, setIsPlaying] = useState(false);
   const [metadata, setMetadata] = useState({ title: 'Chargement...' });
   const audioRef = useRef(null);

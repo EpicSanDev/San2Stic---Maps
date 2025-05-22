@@ -4,8 +4,22 @@ FROM bucharestgold/icecast:latest
 # Copier le fichier de configuration Icecast personnalisé
 COPY icecast.xml /etc/icecast2/icecast.xml
 
+# Définir les variables d'environnement qui seront utilisées pour la substitution
+# Ces variables peuvent être surchargées au moment du lancement du conteneur
+ENV ICECAST_SOURCE_PASSWORD="default_source_password"
+ENV ICECAST_RELAY_PASSWORD="default_relay_password"
+ENV ICECAST_ADMIN_USER="admin"
+ENV ICECAST_ADMIN_PASSWORD="default_admin_password"
+
 # Exposer le port d'Icecast
 EXPOSE 8000
 
-# La commande par défaut de l'image de base devrait démarrer Icecast
-# avec la configuration fournie.
+# Script d'entrée pour substituer les variables et démarrer Icecast
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+# La commande par défaut de l'image de base est généralement "icecast2 -c /etc/icecast2/icecast.xml"
+# Nous la spécifions ici pour clarté si entrypoint.sh l'utilise via exec "$@"
+CMD ["icecast2", "-c", "/etc/icecast2/icecast.xml"]
