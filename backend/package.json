@@ -14,7 +14,6 @@
   "license": "MIT",
   "description": "Backend API for San2Stic collaborative field recording mapping application",
   "dependencies": {
-    "@google-cloud/storage": "^7.16.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -22,6 +21,7 @@
     "express": "^5.1.0",
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
+    "ipfs-http-client": "^60.0.1",
     "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.0",

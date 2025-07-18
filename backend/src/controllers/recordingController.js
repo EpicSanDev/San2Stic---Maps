@@ -1,9 +1,8 @@
 const Recording = require('../models/recording');
 const User = require('../models/user');
-const { bucket, bucketName } = require('../config/gcs');
+const { uploadToIPFS, gatewayUrl } = require('../config/ipfs');
 const blockchainService = require('../services/blockchainService');
 const { v4: uuidv4 } = require('uuid');
-const { format } = require('util');
 const Joi = require('joi');
 
 const createRecordingSchema = Joi.object({
@@ -85,59 +84,45 @@ exports.createRecording = async (req, res) => {
       return res.status(400).json({ error: 'Invalid audio file format.' });
     }
 
-    const blob = bucket.file(`recordings/${uuidv4()}-${req.file.originalname}`);
-    const blobStream = blob.createWriteStream({
-      resumable: false,
-      contentType: req.file.mimetype,
-      metadata: {
-        metadata: {
-          uploadedBy: userId,
-          title: title,
-          artist: artist
-        }
-      }
-    });
+    try {
+      const filename = `recordings/${uuidv4()}-${req.file.originalname}`;
+      const metadata = {
+        uploadedBy: userId,
+        title: title,
+        artist: artist,
+        contentType: req.file.mimetype
+      };
 
-    blobStream.on('error', (err) => {
-      console.error('GCS Upload Error:', err);
-      res.status(500).json({ error: 'Failed to upload audio file. ' + err.message });
-    });
+      const ipfsResult = await uploadToIPFS(req.file.buffer, filename, metadata);
+      
+      const duration = req.body.duration || 0;
 
-    blobStream.on('finish', async () => {
-      try {
-        await blob.makePublic();
-        const publicUrl = format(`https://storage.googleapis.com/${bucketName}/${blob.name}`);
+      const newRecording = await Recording.create({
+        title,
+        description,
+        artist,
+        latitude,
+        longitude,
+        audioUrl: ipfsResult.url,
+        ipfsHash: ipfsResult.hash,
+        duration,
+        quality: 'MEDIUM',
+        equipment,
+        license,
+        tags,
+        UserId: userId,
+      });
 
-        const duration = req.body.duration || 0;
+      await User.increment('totalRecordings', { where: { id: userId } });
 
-        const newRecording = await Recording.create({
-          title,
-          description,
-          artist,
-          latitude,
-          longitude,
-          audioUrl: publicUrl,
-          duration,
-          quality: 'MEDIUM', // Default quality
-          equipment,
-          license,
-          tags,
-          UserId: userId,
-        });
-
-        await User.increment('totalRecordings', { where: { id: userId } });
-
-        res.status(201).json({
-          ...newRecording.toJSON(),
-          message: 'Recording created successfully'
-        });
-      } catch (err) {
-        console.error('Error creating recording after GCS upload:', err);
-        res.status(500).json({ error: 'Failed to create recording after GCS upload. ' + err.message });
-      }
-    });
-
-    blobStream.end(req.file.buffer);
+      res.status(201).json({
+        ...newRecording.toJSON(),
+        message: 'Recording created successfully and uploaded to IPFS'
+      });
+    } catch (err) {
+      console.error('Error creating recording with IPFS upload:', err);
+      res.status(500).json({ error: 'Failed to create recording with IPFS upload. ' + err.message });
+    }
 
   } catch (err) {
     console.error('Error creating recording:', err);
