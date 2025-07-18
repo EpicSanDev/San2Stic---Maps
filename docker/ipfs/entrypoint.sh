@@ -9,10 +9,10 @@ if [ ! -f "$IPFS_PATH/config" ]; then
     ipfs init --profile server
 fi
 
-if [ -f "/tmp/ipfs-config.json" ]; then
-    echo "Applying custom IPFS configuration..."
-    ipfs config replace /tmp/ipfs-config.json
-fi
+# if [ -f "/tmp/ipfs-config.json" ]; then
+#     echo "Applying custom IPFS configuration..."
+#     ipfs config replace /tmp/ipfs-config.json
+# fi
 
 ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001
 ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
