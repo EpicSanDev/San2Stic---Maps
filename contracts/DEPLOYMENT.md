@@ -17,7 +17,7 @@ This guide explains how to deploy the San2Stic Map smart contracts to Base block
    ```
 
 3. **Required Environment Variables**
-   - `PRIVATE_KEY`: Your wallet private key (without 0x prefix)
+   - `PRIVATE_KEY`: Your wallet private key (WITH 0x prefix required)
    - `BASESCAN_API_KEY`: API key from BaseScan for contract verification
 
 ## Contract Architecture
