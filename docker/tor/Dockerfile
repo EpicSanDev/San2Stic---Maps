@@ -17,7 +17,7 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/generate-onion.py
 
 RUN mkdir -p /var/lib/tor/hidden_service && \
-    chown -R tor:tor /var/lib/tor
+    chown -R tor /var/lib/tor
 
 USER tor
 
