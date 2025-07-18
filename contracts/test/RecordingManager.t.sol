@@ -11,39 +11,39 @@ contract RecordingManagerTest is Test {
     address public moderator;
     address public user1;
     address public user2;
-    
+
     event RecordingAdded(uint256 indexed recordingId, address indexed creator, string ipfsHash);
     event RecordingUpdated(uint256 indexed recordingId, address indexed updater);
-    
+
     function setUp() public {
         admin = address(this);
         moderator = makeAddr("moderator");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
-        
+
         // Set block timestamp to avoid anti-spam issues in tests
         vm.warp(1000);
-        
+
         recordingManager = new RecordingManager();
         recordingManager.grantRole(recordingManager.MODERATOR_ROLE(), moderator);
     }
-    
+
     function testInitialState() public {
         assertTrue(recordingManager.hasRole(recordingManager.DEFAULT_ADMIN_ROLE(), admin));
         assertTrue(recordingManager.hasRole(recordingManager.ADMIN_ROLE(), admin));
         assertTrue(recordingManager.hasRole(recordingManager.MODERATOR_ROLE(), admin));
         assertEq(recordingManager.getTotalRecordings(), 0);
     }
-    
+
     function testAddRecording() public {
         string[] memory tags = new string[](2);
         tags[0] = "nature";
         tags[1] = "birds";
-        
+
         vm.prank(user1);
         vm.expectEmit(true, true, true, true);
         emit RecordingAdded(1, user1, "QmTestHash123");
-        
+
         recordingManager.addRecording(
             "Bird Song",
             "Beautiful morning bird song",
@@ -56,9 +56,9 @@ contract RecordingManagerTest is Test {
             "Zoom H5",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         assertEq(recordingManager.getTotalRecordings(), 1);
-        
+
         RecordingManager.RecordingCore memory core = recordingManager.getRecordingCore(1);
         assertEq(core.id, 1);
         assertEq(core.creator, user1);
@@ -66,7 +66,7 @@ contract RecordingManagerTest is Test {
         assertEq(core.latitude, 40000000);
         assertEq(core.longitude, -74000000);
         assertTrue(core.isActive);
-        
+
         RecordingManager.RecordingMetadata memory metadata = recordingManager.getRecordingMetadata(1);
         assertEq(metadata.title, "Bird Song");
         assertEq(metadata.description, "Beautiful morning bird song");
@@ -79,12 +79,12 @@ contract RecordingManagerTest is Test {
         assertEq(uint8(metadata.license), uint8(LicenseManager.LicenseType.CC_BY));
         assertEq(uint8(metadata.status), uint8(RecordingManager.ModerationStatus.PENDING));
     }
-    
+
     function testInvalidCoordinates() public {
         string[] memory tags = new string[](0);
-        
+
         vm.startPrank(user1);
-        
+
         vm.expectRevert("Invalid latitude");
         recordingManager.addRecording(
             "Test",
@@ -98,7 +98,7 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         vm.expectRevert("Invalid longitude");
         recordingManager.addRecording(
             "Test",
@@ -114,10 +114,10 @@ contract RecordingManagerTest is Test {
         );
         vm.stopPrank();
     }
-    
+
     function testRequiredFields() public {
         string[] memory tags = new string[](0);
-        
+
         // Test IPFS hash required
         vm.prank(user1);
         vm.expectRevert("IPFS hash required");
@@ -133,7 +133,7 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         // Test invalid description (use different user to avoid anti-spam)
         vm.prank(user2);
         vm.expectRevert("Invalid description");
@@ -149,7 +149,7 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         // Test duration must be positive (use different coordinates to avoid duplicate)
         vm.prank(makeAddr("user3"));
         vm.expectRevert("Duration must be positive");
@@ -166,10 +166,10 @@ contract RecordingManagerTest is Test {
             LicenseManager.LicenseType.CC_BY
         );
     }
-    
+
     function testAntiSpamMechanism() public {
         string[] memory tags = new string[](0);
-        
+
         // First recording should succeed
         vm.prank(user1);
         recordingManager.addRecording(
@@ -184,7 +184,7 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         // Second recording immediately should fail due to anti-spam
         vm.prank(user1);
         vm.expectRevert("Recording too soon after last submission");
@@ -200,7 +200,7 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         // After waiting 301 seconds, should succeed
         vm.warp(block.timestamp + 301);
         vm.prank(user1);
@@ -216,13 +216,13 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         assertEq(recordingManager.getTotalRecordings(), 2);
     }
-    
+
     function testDuplicatePrevention() public {
         string[] memory tags = new string[](0);
-        
+
         // First recording by user1
         vm.prank(user1);
         recordingManager.addRecording(
@@ -237,7 +237,7 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         // Wait to avoid anti-spam, then try duplicate by user2
         vm.warp(block.timestamp + 301);
         vm.prank(user2);
@@ -246,7 +246,7 @@ contract RecordingManagerTest is Test {
             "Test 2",
             "Test description 2",
             "QmTestHash123", // Same IPFS hash
-            0,               // Same coordinates
+            0, // Same coordinates
             0,
             tags,
             180,
@@ -255,11 +255,11 @@ contract RecordingManagerTest is Test {
             LicenseManager.LicenseType.CC_BY
         );
     }
-    
+
     function testUpdateRecordingMetadata() public {
         string[] memory tags = new string[](1);
         tags[0] = "nature";
-        
+
         address testUser = makeAddr("testUser4");
         vm.prank(testUser);
         recordingManager.addRecording(
@@ -274,24 +274,19 @@ contract RecordingManagerTest is Test {
             "Original equipment",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         string[] memory newTags = new string[](2);
         newTags[0] = "updated";
         newTags[1] = "nature";
-        
+
         vm.prank(testUser);
         vm.expectEmit(true, true, false, false);
         emit RecordingUpdated(1, testUser);
-        
+
         recordingManager.updateRecordingMetadata(
-            1,
-            "Updated Title",
-            "Updated description",
-            newTags,
-            "Updated equipment",
-            LicenseManager.LicenseType.CC_BY_SA
+            1, "Updated Title", "Updated description", newTags, "Updated equipment", LicenseManager.LicenseType.CC_BY_SA
         );
-        
+
         RecordingManager.RecordingMetadata memory metadata = recordingManager.getRecordingMetadata(1);
         assertEq(metadata.title, "Updated Title");
         assertEq(metadata.description, "Updated description");
@@ -300,10 +295,10 @@ contract RecordingManagerTest is Test {
         assertEq(metadata.equipment, "Updated equipment");
         assertEq(uint8(metadata.license), uint8(LicenseManager.LicenseType.CC_BY_SA));
     }
-    
+
     function testOnlyCreatorCanUpdate() public {
         string[] memory tags = new string[](0);
-        
+
         address testUser = makeAddr("testUser3");
         vm.prank(testUser);
         recordingManager.addRecording(
@@ -318,24 +313,19 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         vm.prank(user2);
         vm.expectRevert("Only creator can update");
         recordingManager.updateRecordingMetadata(
-            1,
-            "Updated Title",
-            "Updated description",
-            tags,
-            "Updated equipment",
-            LicenseManager.LicenseType.CC_BY_SA
+            1, "Updated Title", "Updated description", tags, "Updated equipment", LicenseManager.LicenseType.CC_BY_SA
         );
     }
-    
+
     function testGetUserRecordings() public {
         string[] memory tags = new string[](0);
-        
+
         address testUser = makeAddr("testUser5");
-        
+
         // First recording by testUser
         vm.prank(testUser);
         recordingManager.addRecording(
@@ -350,7 +340,7 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         // Wait to avoid anti-spam, then add second recording
         vm.warp(block.timestamp + 301);
         vm.prank(testUser);
@@ -366,19 +356,19 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         uint256[] memory userRecordings = recordingManager.getUserRecordings(testUser);
         assertEq(userRecordings.length, 2);
         assertEq(userRecordings[0], 1);
         assertEq(userRecordings[1], 2);
-        
+
         uint256[] memory emptyRecordings = recordingManager.getUserRecordings(user2);
         assertEq(emptyRecordings.length, 0);
     }
-    
+
     function testGetRecordingsByStatus() public {
         string[] memory tags = new string[](0);
-        
+
         vm.prank(makeAddr("testUser1"));
         recordingManager.addRecording(
             "Test 1",
@@ -392,28 +382,22 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
-        uint256[] memory pendingRecordings = recordingManager.getRecordingsByStatus(
-            RecordingManager.ModerationStatus.PENDING,
-            0,
-            10
-        );
+
+        uint256[] memory pendingRecordings =
+            recordingManager.getRecordingsByStatus(RecordingManager.ModerationStatus.PENDING, 0, 10);
         assertEq(pendingRecordings.length, 1);
         assertEq(pendingRecordings[0], 1);
-        
-        uint256[] memory approvedRecordings = recordingManager.getRecordingsByStatus(
-            RecordingManager.ModerationStatus.APPROVED,
-            0,
-            10
-        );
+
+        uint256[] memory approvedRecordings =
+            recordingManager.getRecordingsByStatus(RecordingManager.ModerationStatus.APPROVED, 0, 10);
         assertEq(approvedRecordings.length, 0);
     }
-    
+
     function testIsLocationUsed() public {
         string[] memory tags = new string[](0);
-        
+
         assertFalse(recordingManager.isLocationUsed(0, 0, "QmTestHash123"));
-        
+
         vm.prank(makeAddr("testUser2"));
         recordingManager.addRecording(
             "Test",
@@ -427,7 +411,7 @@ contract RecordingManagerTest is Test {
             "Test",
             LicenseManager.LicenseType.CC_BY
         );
-        
+
         assertTrue(recordingManager.isLocationUsed(0, 0, "QmTestHash123"));
         assertFalse(recordingManager.isLocationUsed(0, 0, "QmDifferentHash"));
         assertFalse(recordingManager.isLocationUsed(1000000, 1000000, "QmTestHash123"));
