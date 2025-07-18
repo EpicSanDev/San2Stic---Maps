@@ -13,13 +13,20 @@ class BlockchainService {
     if (this.initialized) return;
 
     try {
-      const rpcUrl = process.env.BASE_RPC_URL || 'https://mainnet.base.org';
+      const rpcUrl = process.env.BLOCKCHAIN_RPC_URL || 'https://mainnet.base.org';
       this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
-      const mainContractAddress = process.env.SAN2STIC_MAIN_CONTRACT || '0xB80C7e364ea043A2cbA314C5169d990186A4a1bC';
+      const contractAddresses = {
+        mainContract: process.env.SAN2STIC_MAIN_CONTRACT || '0x34b52da97a0e0fd89a79217c4b934e8af4f4d874',
+        san2sticMap: process.env.SAN2STIC_MAP_CONTRACT || '0xb80c7e364ea043a2cba314c5169d990186a4a1bc',
+        recordingManager: process.env.RECORDING_MANAGER_CONTRACT || '0x114a7e7fb13d65ad3dabbc9874ba2dbc4fe35723',
+        licenseManager: process.env.LICENSE_MANAGER_CONTRACT || '0x44d7653f0ebae21cb68841eed645be4d0cd239f8',
+        votingSystem: process.env.VOTING_SYSTEM_CONTRACT || '0xc40456ce14809c5e346759a600222ae9229d594a'
+      };
       
+      this.contractAddresses = contractAddresses;
       this.initialized = true;
-      console.log('Blockchain service initialized with mainnet contract:', mainContractAddress);
+      console.log('Blockchain service initialized with mainnet contracts:', contractAddresses);
     } catch (error) {
       console.error('Failed to initialize blockchain service:', error);
     }
