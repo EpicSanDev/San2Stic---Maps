@@ -1,0 +1,101 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        service:
+          - name: backend
+            context: ./backend
+            dockerfile: ../infra/Dockerfile.backend
+          - name: frontend
+            context: ./frontend
+            dockerfile: Dockerfile
+          - name: nginx
+            context: ./docker/nginx
+            dockerfile: Dockerfile
+          - name: tor
+            context: ./docker/tor
+            dockerfile: Dockerfile
+          - name: ipfs
+            context: ./docker/ipfs
+            dockerfile: Dockerfile
+          - name: icecast
+            context: ./infra
+            dockerfile: Dockerfile.icecast
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service.name }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=sha,prefix={{branch}}-
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ matrix.service.context }}
+        file: ${{ matrix.service.context }}/${{ matrix.service.dockerfile }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+
+  build-summary:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Build Summary
+      run: |
+        echo "## Docker Build Summary 🐳" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Backend | ${{ needs.build-and-push.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Frontend | ${{ needs.build-and-push.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Nginx | ${{ needs.build-and-push.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tor | ${{ needs.build-and-push.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| IPFS | ${{ needs.build-and-push.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Icecast | ${{ needs.build-and-push.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Images are available at: \`ghcr.io/${{ github.repository }}/SERVICE_NAME:TAG\`" >> $GITHUB_STEP_SUMMARY
