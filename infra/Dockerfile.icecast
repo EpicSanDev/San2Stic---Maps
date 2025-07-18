@@ -1,25 +1,23 @@
-# Utiliser une image Icecast existante
 FROM pltnk/icecast2:latest
 
-# Copier le fichier de configuration Icecast personnalisé
-COPY icecast.xml /etc/icecast2/icecast.xml
+# Copy configuration files
+COPY icecast.xml /etc/icecast2/icecast.xml.template
+COPY entrypoint.sh /entrypoint.sh
 
-# Définir les variables d'environnement qui seront utilisées pour la substitution
-# Ces variables peuvent être surchargées au moment du lancement du conteneur
+# Define environment variables for substitution
 ENV ICECAST_SOURCE_PASSWORD="default_source_password"
 ENV ICECAST_RELAY_PASSWORD="default_relay_password"
 ENV ICECAST_ADMIN_USER="admin"
 ENV ICECAST_ADMIN_PASSWORD="default_admin_password"
 
-# Exposer le port d'Icecast
+# Set proper permissions
+RUN chmod +x /entrypoint.sh && \
+    chmod 644 /etc/icecast2/icecast.xml.template
+
+# Switch to icecast2 user
+USER icecast2
+
 EXPOSE 8000
 
-# Script d'entrée pour substituer les variables et démarrer Icecast
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
 ENTRYPOINT ["/entrypoint.sh"]
-
-# La commande par défaut de l'image de base est généralement "icecast2 -c /etc/icecast2/icecast.xml"
-# Nous la spécifions ici pour clarté si entrypoint.sh l'utilise via exec "$@"
-CMD ["icecast2", "-c", "/etc/icecast2/icecast.xml"]
+CMD ["icecast2", "-c", "/tmp/icecast.xml"]
