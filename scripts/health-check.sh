@@ -94,6 +94,14 @@ if [ -f "/tmp/onion_address.txt" ] || docker-compose exec -T tor test -f /var/li
     ONION_ADDRESS=$(docker-compose exec -T tor cat /var/lib/tor/hidden_service/hostname 2>/dev/null | tr -d '\r\n' || echo "Not available")
     if [ "$ONION_ADDRESS" != "Not available" ]; then
         print_success "Tor hidden service: $ONION_ADDRESS"
+        print_status "Services accessible via Tor:"
+        print_status "  - Web Interface: http://$ONION_ADDRESS"
+        print_status "  - Backend API: http://$ONION_ADDRESS:4000"
+        print_status "  - Icecast Radio: http://$ONION_ADDRESS:8000"
+        print_status "  - IPFS API: http://$ONION_ADDRESS:5001"
+        print_status "  - IPFS Gateway: http://$ONION_ADDRESS:8080"
+        print_status "  - PostgreSQL: $ONION_ADDRESS:5432"
+        print_status "  - Redis: $ONION_ADDRESS:6379"
     else
         print_warning "Tor hidden service address not yet generated"
     fi

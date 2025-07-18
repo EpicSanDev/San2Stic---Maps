@@ -94,7 +94,7 @@ server {
         proxy_read_timeout 300s;
     }
     
-    # Icecast streaming
+    # Icecast streaming - accessible via Tor
     location /stream {
         proxy_pass http://icecast;
         proxy_http_version 1.1;
@@ -106,6 +106,36 @@ server {
         # Streaming optimizations
         proxy_buffering off;
         proxy_cache off;
+    }
+    
+    # Icecast admin interface - accessible via Tor
+    location /icecast/ {
+        proxy_pass http://icecast/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # Database admin interface (if needed) - restricted access
+    location /db-admin/ {
+        allow 172.16.0.0/12;  # Docker networks only
+        deny all;
+        
+        # This would require a database admin tool like pgAdmin
+        # proxy_pass http://pgadmin:80/;
+        return 503 "Database admin interface not configured";
+    }
+    
+    # Redis admin interface (if needed) - restricted access  
+    location /redis-admin/ {
+        allow 172.16.0.0/12;  # Docker networks only
+        deny all;
+        
+        # This would require a Redis admin tool like Redis Commander
+        # proxy_pass http://redis-commander:8081/;
+        return 503 "Redis admin interface not configured";
     }
     
     # IPFS API (restricted access)

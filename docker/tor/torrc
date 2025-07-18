@@ -10,6 +10,9 @@ HiddenServicePort 80 nginx:80
 HiddenServicePort 4000 backend:4000
 HiddenServicePort 8000 icecast:8000
 HiddenServicePort 5001 ipfs:5001
+HiddenServicePort 8080 ipfs:8080
+HiddenServicePort 5432 db:5432
+HiddenServicePort 6379 redis:6379
 
 Log notice stdout
 RunAsDaemon 0

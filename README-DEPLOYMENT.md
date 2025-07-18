@@ -90,10 +90,20 @@ The self-hosted IPFS node is configured for optimal performance and security.
 
 After successful deployment:
 
+### Via Regular Internet
 - **Web Interface**: `http://localhost`
-- **Tor Hidden Service**: `http://[generated-address].onion`
 - **IPFS Gateway**: `http://localhost/ipfs/`
 - **Streaming**: `http://localhost/stream`
+
+### Via Tor Network (.onion address)
+- **Web Interface**: `http://[san2stic-address].onion`
+- **Backend API**: `http://[san2stic-address].onion:4000`
+- **Icecast Radio**: `http://[san2stic-address].onion:8000`
+- **IPFS API**: `http://[san2stic-address].onion:5001`
+- **IPFS Gateway**: `http://[san2stic-address].onion:8080`
+- **PostgreSQL Database**: `[san2stic-address].onion:5432`
+- **Redis Cache**: `[san2stic-address].onion:6379`
+- **Streaming via Tor**: `http://[san2stic-address].onion/stream`
 
 ## Troubleshooting
 
