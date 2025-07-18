@@ -1,22 +1,23 @@
 import { ethers } from 'ethers';
 
 const CONTRACTS = {
-  SAN2STIC_MAP: '0x...',
-  RECORDING_MANAGER: '0x...',
-  LICENSE_MANAGER: '0x...',
-  VOTING_SYSTEM: '0x...'
+  SAN2STIC_MAP_MAIN: '0xB80C7e364ea043A2cbA314C5169d990186A4a1bC',
+  SAN2STIC_MAP: '0x...', // To be updated when individual addresses are available
+  RECORDING_MANAGER: '0x...', // To be updated when individual addresses are available
+  LICENSE_MANAGER: '0x...', // To be updated when individual addresses are available
+  VOTING_SYSTEM: '0x...' // To be updated when individual addresses are available
 };
 
 const CHAIN_CONFIG = {
-  chainId: '0x14A34',
-  chainName: 'Base Sepolia',
+  chainId: '0x2105',
+  chainName: 'Base',
   nativeCurrency: {
     name: 'ETH',
     symbol: 'ETH',
     decimals: 18,
   },
-  rpcUrls: ['https://sepolia.base.org'],
-  blockExplorerUrls: ['https://sepolia.basescan.org'],
+  rpcUrls: ['https://mainnet.base.org'],
+  blockExplorerUrls: ['https://basescan.org'],
 };
 
 export class Web3Service {

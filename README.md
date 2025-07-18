@@ -110,12 +110,13 @@ The application integrates with smart contracts deployed on Base blockchain:
 - **LicenseManager**: Creative Commons and custom license management
 - **VotingSystem**: Community-driven content moderation
 
-### Contract Addresses (Base Sepolia)
+### Contract Addresses (Base Mainnet)
 ```
-San2SticMap: 0x... (to be deployed)
-RecordingManager: 0x... (to be deployed)
-LicenseManager: 0x... (to be deployed)
-VotingSystem: 0x... (to be deployed)
+San2SticMapMain: 0xB80C7e364ea043A2cbA314C5169d990186A4a1bC
+San2SticMap: TBD (individual contract addresses)
+RecordingManager: TBD (individual contract addresses)
+LicenseManager: TBD (individual contract addresses)
+VotingSystem: TBD (individual contract addresses)
 ```
 
 ## 🎯 Key Features

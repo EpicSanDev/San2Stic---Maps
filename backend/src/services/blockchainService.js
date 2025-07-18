@@ -13,12 +13,13 @@ class BlockchainService {
     if (this.initialized) return;
 
     try {
-      const rpcUrl = process.env.BASE_RPC_URL || 'https://sepolia.base.org';
+      const rpcUrl = process.env.BASE_RPC_URL || 'https://mainnet.base.org';
       this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
-
+      const mainContractAddress = process.env.SAN2STIC_MAIN_CONTRACT || '0xB80C7e364ea043A2cbA314C5169d990186A4a1bC';
+      
       this.initialized = true;
-      console.log('Blockchain service initialized');
+      console.log('Blockchain service initialized with mainnet contract:', mainContractAddress);
     } catch (error) {
       console.error('Failed to initialize blockchain service:', error);
     }
