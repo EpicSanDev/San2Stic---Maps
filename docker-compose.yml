@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Tor Hidden Service with Custom .onion Address Generation
   tor:
@@ -54,8 +52,8 @@ services:
       dockerfile: ../infra/Dockerfile.backend
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-san2stic}:${POSTGRES_PASSWORD:-secure_password}@db:5432/${POSTGRES_DB:-san2stic}
-      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_change_this}
+      - DATABASE_URL=postgresql://san2stic:secure_password_change_this@db:5432/san2stic
+      - JWT_SECRET=your_jwt_secret_change_this_to_something_secure
       - IPFS_HOST=ipfs
       - IPFS_PORT=5001
       - IPFS_PROTOCOL=http
@@ -66,8 +64,10 @@ services:
     volumes:
       - shared_data:/shared
     depends_on:
-      - db
-      - ipfs
+      db:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
     networks:
       - app-network
     restart: unless-stopped
@@ -100,6 +100,20 @@ services:
       timeout: 10s
       retries: 3
 
+  # Frontend React Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Nginx Reverse Proxy with Security Headers
   nginx:
     build:
@@ -109,7 +123,6 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./frontend/build:/usr/share/nginx/html:ro
       - nginx_cache:/var/cache/nginx
       - nginx_logs:/var/log/nginx
       - shared_data:/shared
@@ -117,6 +130,7 @@ services:
       - backend
       - icecast
       - ipfs
+      - frontend
     networks:
       - app-network
     restart: unless-stopped
@@ -130,9 +144,9 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-san2stic}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure_password}
-      - POSTGRES_DB=${POSTGRES_DB:-san2stic}
+      - POSTGRES_USER=san2stic
+      - POSTGRES_PASSWORD=secure_password_change_this
+      - POSTGRES_DB=san2stic
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -141,7 +155,7 @@ services:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-san2stic}"]
+      test: ["CMD-SHELL", "pg_isready -U san2stic"]
       interval: 30s
       timeout: 10s
       retries: 3

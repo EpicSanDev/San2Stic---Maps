@@ -1,4 +1,16 @@
-FROM pltnk/icecast2:latest
+FROM alpine:3.18
+
+# Install icecast and dependencies
+RUN apk add --no-cache \
+    icecast \
+    curl \
+    bash
+
+# Create icecast user and directories
+RUN addgroup -g 1000 icecast && \
+    adduser -D -s /bin/bash -u 1000 -G icecast icecast && \
+    mkdir -p /var/log/icecast /tmp && \
+    chown -R icecast:icecast /var/log/icecast /tmp
 
 # Copy configuration files
 COPY icecast.xml /etc/icecast2/icecast.xml.template
@@ -12,12 +24,17 @@ ENV ICECAST_ADMIN_PASSWORD="default_admin_password"
 
 # Set proper permissions
 RUN chmod +x /entrypoint.sh && \
-    chmod 644 /etc/icecast2/icecast.xml.template
+    chmod 644 /etc/icecast2/icecast.xml.template && \
+    chown icecast:icecast /entrypoint.sh /etc/icecast2/icecast.xml.template
 
-# Switch to icecast2 user
-USER icecast2
+# Switch to icecast user
+USER icecast
 
 EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8000/status.xsl || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["icecast2", "-c", "/tmp/icecast.xml"]
