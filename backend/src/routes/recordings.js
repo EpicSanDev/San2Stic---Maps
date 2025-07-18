@@ -1,15 +1,21 @@
 const router = require('express').Router();
-const { getAllRecordings, createRecording, getUserRecordings } = require('../controllers/recordingController');
+const { 
+  getAllRecordings, 
+  createRecording, 
+  getUserRecordings, 
+  getRecordingsByLocation,
+  updateRecording,
+  deleteRecording
+} = require('../controllers/recordingController');
 const { authenticate } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
-// Route pour récupérer tous les enregistrements (publique)
 router.get('/', getAllRecordings);
+router.get('/location', getRecordingsByLocation);
 
-// Route pour créer un nouvel enregistrement (protégée et gère l'upload de fichier)
 router.post('/', authenticate, upload.single('audioFile'), createRecording);
-
-// Route pour récupérer les enregistrements d'un utilisateur spécifique (protégée)
 router.get('/user', authenticate, getUserRecordings);
+router.put('/:id', authenticate, updateRecording);
+router.delete('/:id', authenticate, deleteRecording);
 
 module.exports = router;
