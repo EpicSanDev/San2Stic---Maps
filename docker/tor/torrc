@@ -1,0 +1,15 @@
+SocksPort 0.0.0.0:9050
+ControlPort 0.0.0.0:9051
+HashedControlPassword 16:872860B76453A77D60CA2BB8C1A7042072093276A3D701AD684053EC4C
+
+DataDirectory /var/lib/tor
+PidFile /var/lib/tor/tor.pid
+
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 80 nginx:80
+HiddenServicePort 4000 backend:4000
+HiddenServicePort 8000 icecast:8000
+HiddenServicePort 5001 ipfs:5001
+
+Log notice stdout
+RunAsDaemon 0

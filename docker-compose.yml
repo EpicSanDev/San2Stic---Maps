@@ -1,63 +1,206 @@
 version: '3.8'
 
 services:
+  # Tor Hidden Service with Custom .onion Address Generation
+  tor:
+    build:
+      context: ./docker/tor
+      dockerfile: Dockerfile
+    environment:
+      - ONION_PREFIX=${ONION_PREFIX:-san2stic}
+      - MAX_ATTEMPTS=${MAX_ATTEMPTS:-1000000}
+    volumes:
+      - tor_data:/var/lib/tor
+      - shared_data:/shared
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9050"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Self-hosted IPFS Node
+  ipfs:
+    build:
+      context: ./docker/ipfs
+      dockerfile: Dockerfile
+    environment:
+      - IPFS_PATH=/data/ipfs
+    volumes:
+      - ipfs_data:/data/ipfs
+      - ipfs_staging:/export
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ipfs", "id"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Enhanced Backend with Security Improvements
   backend:
     build:
       context: ./backend
       dockerfile: ../infra/Dockerfile.backend
-    ports:
-      - "${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}" # Le port interne du backend est supposé être 4000
-    env_file:
-      - .env # Charge les variables depuis le fichier .env à la racine
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-san2stic}:${POSTGRES_PASSWORD:-secure_password}@db:5432/${POSTGRES_DB:-san2stic}
+      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_change_this}
+      - IPFS_HOST=ipfs
+      - IPFS_PORT=5001
+      - IPFS_PROTOCOL=http
+      - IPFS_GATEWAY_URL=http://ipfs:8080/ipfs/
+      - ICECAST_URL=http://icecast:8000
+      - ICECAST_MOUNT=/stream
+      - PORT=4000
     volumes:
-      - ./backend:/usr/src/app # Montage du code source pour le développement
-      # Montez le fichier de clé GCP s'il existe à la racine du projet.
-      # Le chemin GCP_KEYFILE_PATH dans .env doit correspondre au chemin cible dans le conteneur.
-      - ./gcp-keyfile.json:${GCP_KEYFILE_PATH:-/usr/src/app/gcp-keyfile.json}
+      - shared_data:/shared
     depends_on:
       - db
+      - ipfs
     networks:
       - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+  # Enhanced Icecast Streaming Server
   icecast:
     build:
       context: ./infra
       dockerfile: Dockerfile.icecast
-    ports:
-      - "${ICECAST_PORT:-8000}:8000" # Port standard d'Icecast
-    env_file:
-      - .env # Charge les variables depuis le fichier .env
-    # Les variables d'environnement suivantes sont des exemples et peuvent être
-    # utilisées par un script d'entrée dans votre Dockerfile.icecast pour configurer Icecast.
     environment:
-      ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD}
-      ICECAST_RELAY_PASSWORD: ${ICECAST_RELAY_PASSWORD}
-      ICECAST_ADMIN_USERNAME: ${ICECAST_ADMIN_USERNAME}
-      ICECAST_ADMIN_PASSWORD: ${ICECAST_ADMIN_PASSWORD}
-      ICECAST_HOSTNAME: ${ICECAST_HOSTNAME}
+      - ICECAST_SOURCE_PASSWORD=${ICECAST_SOURCE_PASSWORD:-secure_source_password}
+      - ICECAST_RELAY_PASSWORD=${ICECAST_RELAY_PASSWORD:-secure_relay_password}
+      - ICECAST_ADMIN_USER=${ICECAST_ADMIN_USER:-admin}
+      - ICECAST_ADMIN_PASSWORD=${ICECAST_ADMIN_PASSWORD:-secure_admin_password}
+      - ICECAST_HOSTNAME=${ICECAST_HOSTNAME:-localhost}
     volumes:
-      # Monte le fichier de configuration icecast.xml pour refléter les changements sans rebuild.
-      # Assurez-vous que le Dockerfile.icecast est compatible avec cette approche
-      # (par exemple, il ne doit pas écraser ce fichier après le montage).
       - ./infra/icecast.xml:/etc/icecast2/icecast.xml
+      - icecast_logs:/var/log/icecast
     networks:
       - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/status.xsl"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  db:
-    image: postgres:13-alpine # Utilisation d'une image Alpine pour la légèreté
+  # Nginx Reverse Proxy with Security Headers
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
     ports:
-      # Mappe le port PostgreSQL à l'hôte pour un accès direct si nécessaire.
-      - "${DB_PORT:-5432}:5432"
-    env_file:
-      - .env # Charge POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+      - "80:80"
+      - "443:443"
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Persistance des données PostgreSQL
+      - ./frontend/build:/usr/share/nginx/html:ro
+      - nginx_cache:/var/cache/nginx
+      - nginx_logs:/var/log/nginx
+      - shared_data:/shared
+    depends_on:
+      - backend
+      - icecast
+      - ipfs
     networks:
       - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL Database with Performance Tuning
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-san2stic}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure_password}
+      - POSTGRES_DB=${POSTGRES_DB:-san2stic}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-san2stic}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+
+  # Redis Cache for Performance
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # Monitoring and Health Checks
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=3600
+    networks:
+      - app-network
+    restart: unless-stopped
 
 volumes:
-  postgres_data: # Déclaration du volume nommé pour la base de données
+  postgres_data:
+    driver: local
+  ipfs_data:
+    driver: local
+  ipfs_staging:
+    driver: local
+  tor_data:
+    driver: local
+  shared_data:
+    driver: local
+  nginx_cache:
+    driver: local
+  nginx_logs:
+    driver: local
+  icecast_logs:
+    driver: local
+  redis_data:
+    driver: local
 
 networks:
-  app-network: # Réseau commun pour permettre la communication entre services
+  app-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
