@@ -1,11 +1,11 @@
 import { ethers } from 'ethers';
 
 const CONTRACTS = {
-  SAN2STIC_MAP_MAIN: '0xB80C7e364ea043A2cbA314C5169d990186A4a1bC',
-  SAN2STIC_MAP: '0x...', // To be updated when individual addresses are available
-  RECORDING_MANAGER: '0x...', // To be updated when individual addresses are available
-  LICENSE_MANAGER: '0x...', // To be updated when individual addresses are available
-  VOTING_SYSTEM: '0x...' // To be updated when individual addresses are available
+  SAN2STIC_MAP_MAIN: '0x34b52da97a0e0fd89a79217c4b934e8af4f4d874',
+  SAN2STIC_MAP: '0xb80c7e364ea043a2cba314c5169d990186a4a1bc',
+  RECORDING_MANAGER: '0x114a7e7fb13d65ad3dabbc9874ba2dbc4fe35723',
+  LICENSE_MANAGER: '0x44d7653f0ebae21cb68841eed645be4d0cd239f8',
+  VOTING_SYSTEM: '0xc40456ce14809c5e346759a600222ae9229d594a'
 };
 
 const CHAIN_CONFIG = {

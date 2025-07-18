@@ -1,0 +1,29 @@
+{
+  "chainId": 8453,
+  "network": "base-mainnet",
+  "deployedAt": "2025-01-18T13:56:00Z",
+  "contracts": {
+    "San2SticMap": {
+      "address": "0xb80c7e364ea043a2cba314c5169d990186a4a1bc",
+      "transactionHash": "0xbb3c71692fdc129adb552bb139a676721b4fc50024037ee3b7a0905e528301bb"
+    },
+    "RecordingManager": {
+      "address": "0x114a7e7fb13d65ad3dabbc9874ba2dbc4fe35723",
+      "transactionHash": "0xa0cebc40bbd3147944bae1a9766d2250567ec385077f34da01e962146b3b1ccc"
+    },
+    "VotingSystem": {
+      "address": "0xc40456ce14809c5e346759a600222ae9229d594a",
+      "transactionHash": "0xe5188a861da1d184b7ed0dda44fd633739a96edd566b425423aa731a183dfa93"
+    },
+    "LicenseManager": {
+      "address": "0x44d7653f0ebae21cb68841eed645be4d0cd239f8",
+      "transactionHash": "0x9549ca630cdfb5835eb4002c6d753878a47a3c9f05c6565255cc91e993e5afae"
+    },
+    "San2SticMapMain": {
+      "address": "0x34b52da97a0e0fd89a79217c4b934e8af4f4d874",
+      "transactionHash": "0xcf1f275bff757700c9fe61030485e3c8dc901dfb22b83f280af69f701ae93e9e"
+    }
+  },
+  "deployer": "0x060934ddb3b077bf2737b8ab24d43aa49c0d7eaf",
+  "explorer": "https://basescan.org"
+}

@@ -112,12 +112,20 @@ The application integrates with smart contracts deployed on Base blockchain:
 
 ### Contract Addresses (Base Mainnet)
 ```
-San2SticMapMain: 0xB80C7e364ea043A2cbA314C5169d990186A4a1bC
-San2SticMap: TBD (individual contract addresses)
-RecordingManager: TBD (individual contract addresses)
-LicenseManager: TBD (individual contract addresses)
-VotingSystem: TBD (individual contract addresses)
+San2SticMapMain: 0x34b52da97a0e0fd89a79217c4b934e8af4f4d874
+San2SticMap: 0xb80c7e364ea043a2cba314c5169d990186a4a1bc
+RecordingManager: 0x114a7e7fb13d65ad3dabbc9874ba2dbc4fe35723
+LicenseManager: 0x44d7653f0ebae21cb68841eed645be4d0cd239f8
+VotingSystem: 0xc40456ce14809c5e346759a600222ae9229d594a
 ```
+
+**Deployment Information:**
+- **Network**: Base Mainnet (Chain ID: 8453)
+- **Deployer**: 0x060934ddb3b077bf2737b8ab24d43aa49c0d7eaf
+- **Block Explorer**: [BaseScan](https://basescan.org)
+- **Deployment File**: `contracts/deployments/base-mainnet.json`
+
+All contracts are verified and operational on Base mainnet. The deployment includes proper role assignments and cross-contract integrations.
 
 ## 🎯 Key Features
 
