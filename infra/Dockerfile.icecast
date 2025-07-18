@@ -1,5 +1,5 @@
 # Utiliser une image Icecast existante
-FROM bucharestgold/icecast:latest
+FROM pltnk/icecast2:latest
 
 # Copier le fichier de configuration Icecast personnalisé
 COPY icecast.xml /etc/icecast2/icecast.xml
