@@ -31,14 +31,14 @@ def generate_vanity_onion(prefix="san2stic", max_attempts=1000000):
         private_key_pem = result.stdout
         
         result = subprocess.run(['openssl', 'pkey', '-in', '/dev/stdin', '-raw', '-outform', 'DER'],
-                              input=private_key_pem, capture_output=True, text=False)
+                              input=private_key_pem.encode('utf-8'), capture_output=True)
         if result.returncode != 0:
             continue
             
         private_key_raw = result.stdout
         
         result = subprocess.run(['openssl', 'pkey', '-in', '/dev/stdin', '-pubout', '-raw', '-outform', 'DER'],
-                              input=private_key_pem, capture_output=True, text=False)
+                              input=private_key_pem.encode('utf-8'), capture_output=True)
         if result.returncode != 0:
             continue
             

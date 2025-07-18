@@ -17,6 +17,12 @@
   <listen-socket>
     <port>8000</port>
   </listen-socket>
+  <logging>
+    <accesslog>-</accesslog>
+    <errorlog>-</errorlog>
+    <loglevel>3</loglevel>
+    <logsize>10000</logsize>
+  </logging>
   <mount>
     <mount-name>/stream</mount-name>
     <password>changeme_stream_source_password</password>

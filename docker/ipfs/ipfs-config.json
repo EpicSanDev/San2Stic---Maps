@@ -26,6 +26,16 @@
     "/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt"
   ],
   "Datastore": {
+    "Spec": {
+      "type": "mount",
+      "mounts": [
+        {
+          "mountpoint": "/",
+          "type": "levelds",
+          "path": "datastore"
+        }
+      ]
+    },
     "StorageMax": "10GB",
     "StorageGCWatermark": 90,
     "GCPeriod": "1h",
