@@ -12,7 +12,7 @@
 | **Authentication** | JWT + bcrypt                              | Secure user authentication                |
 | **Storage**     | Google Cloud Storage + IPFS                 | Audio file storage & distribution         |
 | **Streaming**   | Icecast                                      | Live radio streaming                       |
-| **Deployment** | Docker + Railway/GCP                         | Containerized cloud deployment             |
+| **Deployment** | Docker + GitHub Container Registry + CI/CD  | Automated containerized deployment         |
 
 ## 📁 Project Structure
 
@@ -40,8 +40,20 @@ San2Stic---Maps/
 │   └── foundry.toml
 ├── 🐳 infra/                 # Infrastructure & deployment
 │   ├── docker-compose.yml
+│   ├── docker-compose.prod.yml
+│   ├── Dockerfile.backend
+│   ├── Dockerfile.icecast
 │   └── icecast.xml
+├── 🔄 .github/workflows/     # CI/CD pipelines
+│   ├── docker-build-push.yml
+│   ├── deploy.yml
+│   └── cleanup-images.yml
+├── 📜 scripts/               # Utility scripts
+│   ├── test-builds.sh
+│   ├── pull-images.sh
+│   └── start-prod.sh
 └── 📚 docs/                  # Documentation
+    └── CI-CD.md
 ```
 
 ## 🚀 Quick Start
@@ -95,7 +107,40 @@ forge test
 forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --verify
 ```
 
-### 4. Icecast Streaming (Optional)
+### 4. Production Deployment with CI/CD
+
+**Using Docker with GitHub Container Registry:**
+
+```bash
+# Quick start with production images
+export GITHUB_REPOSITORY=your-username/san2stic-maps
+./scripts/start-prod.sh
+
+# Or manually
+cp .env.prod.example .env.prod
+# Edit .env.prod with your values
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+**CI/CD Pipeline:**
+- Automatic builds on push to `main`/`develop`
+- Multi-architecture support (AMD64/ARM64)
+- Images stored in GitHub Container Registry
+- Automated deployment workflows
+
+See [CI/CD Documentation](docs/CI-CD.md) for detailed setup instructions.
+
+### 5. Development with Docker
+
+```bash
+# Build and test all services locally
+./scripts/test-builds.sh
+
+# Start development environment
+docker-compose up -d --build
+```
+
+### 6. Icecast Streaming (Optional)
 
 ```bash
 icecast -c infra/icecast.xml

@@ -1,0 +1,143 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-builds:
+    runs-on: ubuntu-latest
+    name: Test Docker Builds
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Test Backend Build
+      run: |
+        docker build -t test-backend ./backend -f ./infra/Dockerfile.backend
+
+    - name: Test Frontend Build
+      run: |
+        docker build -t test-frontend ./frontend -f ./frontend/Dockerfile
+
+    - name: Test Nginx Build
+      run: |
+        docker build -t test-nginx ./docker/nginx -f ./docker/nginx/Dockerfile
+
+    - name: Test Tor Build
+      run: |
+        docker build -t test-tor ./docker/tor -f ./docker/tor/Dockerfile
+
+    - name: Test IPFS Build
+      run: |
+        docker build -t test-ipfs ./docker/ipfs -f ./docker/ipfs/Dockerfile
+
+    - name: Test Icecast Build
+      run: |
+        docker build -t test-icecast ./infra -f ./infra/Dockerfile.icecast
+
+    - name: Test Summary
+      run: |
+        echo "## Test Results 🧪" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "All Docker builds completed successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Backend | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| Frontend | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| Nginx | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tor | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| IPFS | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| Icecast | ✅ |" >> $GITHUB_STEP_SUMMARY
+
+  lint-and-security:
+    runs-on: ubuntu-latest
+    name: Lint and Security Checks
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Run Hadolint (Dockerfile linter)
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: infra/Dockerfile.backend
+        failure-threshold: warning
+
+    - name: Run Hadolint for Frontend
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: frontend/Dockerfile
+        failure-threshold: warning
+
+    - name: Run Hadolint for Icecast
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: infra/Dockerfile.icecast
+        failure-threshold: warning
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  integration-test:
+    runs-on: ubuntu-latest
+    name: Integration Tests
+    needs: test-builds
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Create test environment file
+      run: |
+        cat > .env.test << EOF
+        POSTGRES_PASSWORD=test_password
+        JWT_SECRET=test_jwt_secret_for_testing_only
+        ICECAST_SOURCE_PASSWORD=test_source
+        ICECAST_RELAY_PASSWORD=test_relay
+        ICECAST_ADMIN_PASSWORD=test_admin
+        GITHUB_REPOSITORY=test/san2stic-maps
+        EOF
+
+    - name: Start services for integration testing
+      run: |
+        # Use development compose for testing
+        docker-compose up -d --build db redis
+        
+        # Wait for database to be ready
+        timeout 60 bash -c 'until docker-compose exec -T db pg_isready -U san2stic; do sleep 2; done'
+
+    - name: Run basic health checks
+      run: |
+        # Test database connection
+        docker-compose exec -T db psql -U san2stic -d san2stic -c "SELECT 1;"
+        
+        # Test Redis connection
+        docker-compose exec -T redis redis-cli ping
+
+    - name: Cleanup test environment
+      if: always()
+      run: |
+        docker-compose down -v
+        docker system prune -f

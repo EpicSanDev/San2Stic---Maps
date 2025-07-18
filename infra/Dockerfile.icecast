@@ -6,9 +6,16 @@ RUN apk add --no-cache \
     curl \
     bash
 
-# Create icecast user and directories
-RUN addgroup -g 1000 icecast && \
-    adduser -D -s /bin/bash -u 1000 -G icecast icecast && \
+# Setup icecast user and directories
+RUN set -e; \
+    # Check if icecast user already exists, if not create it
+    if ! id icecast >/dev/null 2>&1; then \
+        # Check if icecast group exists, if not create it
+        if ! getent group icecast >/dev/null 2>&1; then \
+            addgroup -g 1000 icecast; \
+        fi; \
+        adduser -D -s /bin/bash -u 1000 -G icecast icecast; \
+    fi && \
     mkdir -p /var/log/icecast /tmp && \
     chown -R icecast:icecast /var/log/icecast /tmp
 
@@ -16,11 +23,9 @@ RUN addgroup -g 1000 icecast && \
 COPY icecast.xml /etc/icecast2/icecast.xml.template
 COPY entrypoint.sh /entrypoint.sh
 
-# Define environment variables for substitution
-ENV ICECAST_SOURCE_PASSWORD="default_source_password"
-ENV ICECAST_RELAY_PASSWORD="default_relay_password"
+# Define default environment variables (will be overridden at runtime)
 ENV ICECAST_ADMIN_USER="admin"
-ENV ICECAST_ADMIN_PASSWORD="default_admin_password"
+ENV ICECAST_HOSTNAME="localhost"
 
 # Set proper permissions
 RUN chmod +x /entrypoint.sh && \
