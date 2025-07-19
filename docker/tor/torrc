@@ -1,5 +1,5 @@
 SocksPort 0.0.0.0:9050
-ControlPort 0.0.0.0:9051
+ControlPort 127.0.0.1:9051
 HashedControlPassword 16:872860B76453A77D60CA2BB8C1A7042072093276A3D701AD684053EC4C
 
 DataDirectory /var/lib/tor
