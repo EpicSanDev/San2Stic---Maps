@@ -4,7 +4,17 @@ FROM alpine:3.18
 RUN apk add --no-cache \
     icecast \
     curl \
-    bash
+    bash && \
+    # Create webroot directory
+    mkdir -p /usr/local/icecast/webroot && \
+    # Find and copy XSLT files from various possible locations
+    for dir in /usr/share/icecast/web /usr/share/icecast2/web /etc/icecast2/web /usr/share/doc/icecast/examples/web; do \
+        if [ -d "$dir" ]; then \
+            echo "Found XSLT files in $dir, copying..."; \
+            cp -r "$dir"/* /usr/local/icecast/webroot/ 2>/dev/null || true; \
+            break; \
+        fi; \
+    done
 
 # Setup icecast user and directories
 RUN set -e; \
@@ -22,6 +32,10 @@ RUN set -e; \
 # Copy configuration files
 COPY icecast.xml /etc/icecast2/icecast.xml.template
 COPY entrypoint.sh /entrypoint.sh
+COPY status.xsl /usr/local/icecast/webroot/status.xsl
+COPY admin.xsl /usr/local/icecast/webroot/admin.xsl
+COPY index.html /usr/local/icecast/webroot/index.html
+COPY stream.m3u /usr/local/icecast/webroot/stream.m3u
 
 # Define default environment variables (will be overridden at runtime)
 ENV ICECAST_ADMIN_USER="admin"
@@ -30,7 +44,8 @@ ENV ICECAST_HOSTNAME="localhost"
 # Set proper permissions
 RUN chmod +x /entrypoint.sh && \
     chmod 644 /etc/icecast2/icecast.xml.template && \
-    chown icecast:icecast /entrypoint.sh /etc/icecast2/icecast.xml.template
+    chmod 644 /usr/local/icecast/webroot/* && \
+    chown -R icecast:icecast /entrypoint.sh /etc/icecast2/icecast.xml.template /usr/local/icecast/webroot
 
 # Switch to icecast user
 USER icecast

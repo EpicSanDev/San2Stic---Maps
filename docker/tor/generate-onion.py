@@ -10,7 +10,7 @@ from stem.control import Controller
 from stem.descriptor.hidden_service import HiddenServiceDescriptorV3
 import subprocess
 
-def generate_vanity_onion(prefix="san2stic", max_attempts=1000000):
+def generate_vanity_onion(prefix="san", max_attempts=1000000):
     """
     Generate a vanity .onion address with the specified prefix.
     This uses a brute force approach to find an address starting with the prefix.
@@ -74,7 +74,7 @@ def generate_vanity_onion(prefix="san2stic", max_attempts=1000000):
     return None
 
 def main():
-    prefix = os.environ.get('ONION_PREFIX', 'san2stic')
+    prefix = os.environ.get('ONION_PREFIX', 'san')
     max_attempts = int(os.environ.get('MAX_ATTEMPTS', '1000000'))
     
     hostname_file = '/var/lib/tor/hidden_service/hostname'

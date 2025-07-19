@@ -27,9 +27,6 @@ COPY --from=build /app/build /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Create a simple health check endpoint
-RUN echo '<!DOCTYPE html><html><body>OK</body></html>' > /usr/share/nginx/html/health.html
-
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

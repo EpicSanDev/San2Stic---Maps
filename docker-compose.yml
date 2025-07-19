@@ -5,7 +5,7 @@ services:
       context: ./docker/tor
       dockerfile: Dockerfile
     environment:
-      - ONION_PREFIX=${ONION_PREFIX:-san2stic}
+      - ONION_PREFIX=${ONION_PREFIX:-san}
       - MAX_ATTEMPTS=${MAX_ATTEMPTS:-1000000}
     volumes:
       - tor_data:/var/lib/tor

@@ -17,6 +17,12 @@
   <listen-socket>
     <port>8000</port>
   </listen-socket>
+  <paths>
+    <basedir>/usr/local/icecast</basedir>
+    <logdir>/var/log/icecast</logdir>
+    <webroot>/usr/local/icecast/webroot</webroot>
+    <adminroot>/usr/local/icecast/webroot</adminroot>
+  </paths>
   <logging>
     <accesslog>-</accesslog>
     <errorlog>-</errorlog>

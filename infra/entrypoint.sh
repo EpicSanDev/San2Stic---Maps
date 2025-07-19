@@ -16,4 +16,9 @@ sed -i "s|%%ICECAST_ADMIN_PASSWORD%%|$ICECAST_ADMIN_PASSWORD|g" /tmp/icecast.xml
 echo "Icecast configuration updated with environment variables."
 echo "Starting Icecast server..."
 
-exec "$@"
+# Start icecast with the correct binary name for Alpine
+if [ "$1" = "icecast2" ]; then
+    exec icecast -c /tmp/icecast.xml
+else
+    exec "$@"
+fi
