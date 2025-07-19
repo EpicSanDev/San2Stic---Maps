@@ -4,13 +4,13 @@ set -e
 
 echo "Starting Tor hidden service (simple mode)..."
 
-# Attendre que nginx-tor soit prêt
-echo "Waiting for nginx-tor to be ready..."
-while ! nc -z nginx-tor 80; do
+# Attendre que nginx soit prêt
+echo "Waiting for nginx to be ready..."
+while ! nc -z nginx 80; do
     sleep 2
 done
 
-echo "nginx-tor is ready, starting Tor..."
+echo "nginx is ready, starting Tor..."
 
 # Démarrer Tor et attendre la génération de l'adresse .onion
 tor -f /etc/tor/torrc &

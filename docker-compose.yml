@@ -1,12 +1,9 @@
 services:
-  # Tor Hidden Service with Custom .onion Address Generation
+  # Tor Hidden Service (Simple Mode - No Vanity Address)
   tor:
     build:
       context: ./docker/tor
       dockerfile: Dockerfile
-    environment:
-      - ONION_PREFIX=${ONION_PREFIX:-san}
-      - MAX_ATTEMPTS=${MAX_ATTEMPTS:-1000000}
     volumes:
       - tor_data:/var/lib/tor
       - shared_data:/shared
