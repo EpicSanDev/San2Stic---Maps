@@ -18,7 +18,7 @@ export const useAuth = () => {
       // Optionnel : Valider le token avec le backend ici
       // et récupérer les informations utilisateur si le token est valide.
       // Pour l'instant, on suppose que si le token est là, l'utilisateur est "connecté".
-      // Si vous avez un endpoint /api/auth/me ou /api/user/profile, utilisez-le.
+      // Si vous avez un endpoint /auth/me ou /users/profile, utilisez-le.
     }
   }, []);
 
@@ -34,7 +34,7 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('/api/auth/signup', { email, password });
+      const response = await axios.post('/auth/signup', { email, password });
       if (response.data && response.data.token && response.data.user) {
         storeAuthData(response.data.user, response.data.token);
         return true;
@@ -54,7 +54,7 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await axios.post('/auth/login', { email, password });
       if (response.data && response.data.token && response.data.user) {
         storeAuthData(response.data.user, response.data.token);
         return true;

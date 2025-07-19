@@ -4,6 +4,18 @@ set -e
 
 echo "Starting Tor hidden service setup..."
 
+# Ensure correct permissions for Tor directories
+if [ -d "/var/lib/tor" ]; then
+    chmod 700 /var/lib/tor
+fi
+
+if [ -d "/var/lib/tor/hidden_service" ]; then
+    chmod 700 /var/lib/tor/hidden_service
+else
+    mkdir -p /var/lib/tor/hidden_service
+    chmod 700 /var/lib/tor/hidden_service
+fi
+
 if [ ! -f "/var/lib/tor/hidden_service/hostname" ]; then
     echo "Generating vanity .onion address..."
     python3 /usr/local/bin/generate-onion.py

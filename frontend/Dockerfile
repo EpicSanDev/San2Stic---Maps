@@ -12,6 +12,15 @@ RUN npm ci --only=production
 # Copy source code
 COPY . .
 
+# Set build-time environment variables
+ARG REACT_APP_ICECAST_STREAM_URL=/stream
+ARG REACT_APP_ICECAST_METADATA_URL=/icecast/status-json.xsl
+ARG REACT_APP_API_BASE_URL=/api
+
+ENV REACT_APP_ICECAST_STREAM_URL=$REACT_APP_ICECAST_STREAM_URL
+ENV REACT_APP_ICECAST_METADATA_URL=$REACT_APP_ICECAST_METADATA_URL
+ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
+
 # Build the application
 RUN npm run build
 

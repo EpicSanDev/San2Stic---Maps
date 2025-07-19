@@ -102,6 +102,10 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - REACT_APP_ICECAST_STREAM_URL=/stream
+        - REACT_APP_ICECAST_METADATA_URL=/icecast/status-json.xsl
+        - REACT_APP_API_BASE_URL=/api
     networks:
       - app-network
     restart: unless-stopped
@@ -116,6 +120,8 @@ services:
     build:
       context: ./docker/nginx
       dockerfile: Dockerfile
+    environment:
+      - NGINX_MODE=tor
     ports:
       - "80:80"
       - "443:443"

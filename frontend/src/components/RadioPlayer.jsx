@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios'; // Assurez-vous qu'axios est listé dans les dépendances de package.json
 
 const RadioPlayer = () => {
-  const streamUrl = process.env.REACT_APP_ICECAST_STREAM_URL || 'http://localhost:8000/stream';
-  const metadataUrl = process.env.REACT_APP_ICECAST_METADATA_URL || 'http://localhost:8000/status-json.xsl';
+  const streamUrl = process.env.REACT_APP_ICECAST_STREAM_URL || '/stream';
+  // Utiliser l'endpoint de statut standard d'Icecast
+  const metadataUrl = process.env.REACT_APP_ICECAST_METADATA_URL || '/icecast/status.xsl';
   const [isPlaying, setIsPlaying] = useState(false);
-  const [metadata, setMetadata] = useState({ title: 'Chargement...' });
+  const [metadata, setMetadata] = useState({ title: 'San2Stic Radio' });
   const audioRef = useRef(null);
 
   // Contrôle de la lecture audio
@@ -24,28 +25,44 @@ const RadioPlayer = () => {
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
-        const response = await axios.get(metadataUrl);
-        // La structure exacte peut varier, adaptez en fonction de la réponse d'Icecast
-        // Souvent, les informations se trouvent dans response.data.icestats.source
-        const source = response.data?.icestats?.source;
-        if (source) {
-          const title = source.title || source.song || 'Titre indisponible';
-          // Pour l'artwork, cela dépendra de la configuration d'Icecast et de la source.
-          // Exemple: const artworkUrl = source.artwork_url;
-          setMetadata({ title });
+        // Créer une instance axios sans baseURL pour éviter le conflit avec /api
+        const icecastAxios = axios.create({
+          baseURL: '', // Pas de baseURL pour les requêtes Icecast
+          timeout: 10000
+        });
+        const response = await icecastAxios.get(metadataUrl);
+        
+        // Vérifier si c'est du JSON ou du XML
+        if (typeof response.data === 'object' && response.data.icestats) {
+          // Format JSON
+          const source = response.data.icestats.source;
+          if (source) {
+            const title = source.title || source.song || 'San2Stic Radio';
+            setMetadata({ title });
+          } else {
+            setMetadata({ title: 'San2Stic Radio' });
+          }
         } else {
-          setMetadata({ title: 'Métadonnées indisponibles' });
+          // Format XML ou autre - utiliser un titre par défaut
+          setMetadata({ title: 'San2Stic Radio' });
         }
       } catch (error) {
         console.error('Erreur lors de la récupération des métadonnées:', error);
-        setMetadata({ title: 'Erreur de métadonnées' });
+        // En cas d'erreur, utiliser un titre par défaut sans afficher "Erreur"
+        setMetadata({ title: 'San2Stic Radio' });
       }
     };
 
-    fetchMetadata(); // Appel initial
-    const intervalId = setInterval(fetchMetadata, 10000); // Polling toutes les 10 secondes
+    // Appel initial avec un délai pour laisser le temps aux services de démarrer
+    const initialTimeout = setTimeout(fetchMetadata, 2000);
+    
+    // Polling moins fréquent pour réduire les erreurs
+    const intervalId = setInterval(fetchMetadata, 30000); // Polling toutes les 30 secondes
 
-    return () => clearInterval(intervalId); // Nettoyage à la suppression du composant
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(intervalId);
+    };
   }, [metadataUrl]);
 
   // Synchronisation de l'état de lecture avec l'élément audio (par exemple, si l'utilisateur utilise les contrôles natifs si visibles)
@@ -85,7 +102,7 @@ const RadioPlayer = () => {
 
         <div className="flex-grow min-w-0"> {/* min-w-0 pour s'assurer que truncate fonctionne bien dans un flex item */}
           <h2
-            className={`text-md sm:text-lg font-semibold truncate text-text-primary ${metadata.title === 'Chargement...' || metadata.title === 'Erreur de métadonnées' || metadata.title === 'Métadonnées indisponibles' ? 'animate-pulse' : ''}`}
+            className="text-md sm:text-lg font-semibold truncate text-text-primary"
             title={metadata.title}
           >
             {metadata.title}

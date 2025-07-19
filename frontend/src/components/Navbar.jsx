@@ -42,6 +42,12 @@ const Navbar = () => {
                 >
                   Radio
                 </Link>
+                <Link 
+                  to="/upload" 
+                  className={`${linkStyle} ${isActive('/upload') ? activeLinkStyle : ''}`}
+                >
+                  Upload
+                </Link>
               </div>
             </div>
           </div>

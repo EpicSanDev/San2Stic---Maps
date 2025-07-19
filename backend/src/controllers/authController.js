@@ -18,7 +18,18 @@ exports.signup = async (req, res) => {
     });
 
     const token = generateToken({ id: newUser.id, role: newUser.role });
-    res.status(201).json({ token });
+    
+    // Renvoyer les informations utilisateur sans le mot de passe
+    const userResponse = {
+      id: newUser.id,
+      email: newUser.email,
+      username: newUser.username,
+      role: newUser.role,
+      reputation: newUser.reputation,
+      registrationTimestamp: newUser.registrationTimestamp
+    };
+    
+    res.status(201).json({ token, user: userResponse });
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ message: 'Error signing up user.', error: error.message });
@@ -42,7 +53,18 @@ exports.login = async (req, res) => {
     }
 
     const token = generateToken({ id: user.id, role: user.role });
-    res.status(200).json({ token });
+    
+    // Renvoyer les informations utilisateur sans le mot de passe
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      reputation: user.reputation,
+      registrationTimestamp: user.registrationTimestamp
+    };
+    
+    res.status(200).json({ token, user: userResponse });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Error logging in user.', error: error.message });

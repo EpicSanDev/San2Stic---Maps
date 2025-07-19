@@ -13,7 +13,7 @@ const useRecordings = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get('/api/recordings', {
+      const response = await axios.get('/recordings', {
         params: { page, limit, status }
       });
       
@@ -39,7 +39,7 @@ const useRecordings = () => {
     setError(null);
     try {
       const { minLat, maxLat, minLng, maxLng } = bounds;
-      const response = await axios.get('/api/recordings/location', {
+      const response = await axios.get('/recordings/location', {
         params: { minLat, maxLat, minLng, maxLng, page, limit }
       });
       
@@ -61,7 +61,7 @@ const useRecordings = () => {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/recordings/user', {
+      const response = await axios.get('/recordings/user', {
         params: { page, limit },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -90,7 +90,7 @@ const useRecordings = () => {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/recordings', formData, {
+      const response = await axios.post('/recordings', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -113,7 +113,7 @@ const useRecordings = () => {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`/api/recordings/${recordingId}`, updateData, {
+      const response = await axios.put(`/recordings/${recordingId}`, updateData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ const useRecordings = () => {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.delete(`/api/recordings/${recordingId}`, {
+      const response = await axios.delete(`/recordings/${recordingId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

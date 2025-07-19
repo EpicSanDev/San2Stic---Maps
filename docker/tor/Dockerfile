@@ -18,8 +18,11 @@ COPY entrypoint.simple.sh /usr/local/bin/entrypoint.simple.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/generate-onion.py /usr/local/bin/entrypoint.simple.sh
 
+# Create directories and set permissions (tor user should exist from tor package)
 RUN mkdir -p /var/lib/tor/hidden_service && \
-    chown -R tor /var/lib/tor
+    chown -R tor /var/lib/tor && \
+    chmod 700 /var/lib/tor && \
+    chmod 700 /var/lib/tor/hidden_service
 
 USER tor
 
