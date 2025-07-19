@@ -1,6 +1,6 @@
 import React from 'react';
 import MapView from '../components/MapView';
-import useRecordings from '../hooks/useRecordings';
+import { useRecordings } from '../hooks/useRecordings';
 
 const MapPage = () => {
   const { recordings, isLoading, error } = useRecordings();

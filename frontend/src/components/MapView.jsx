@@ -4,7 +4,7 @@ import MarkerClusterGroup from 'react-leaflet-markercluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'react-leaflet-markercluster/dist/styles.min.css';
-import useRecordings from '../hooks/useRecordings';
+import { useRecordings } from '../hooks/useRecordings';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({

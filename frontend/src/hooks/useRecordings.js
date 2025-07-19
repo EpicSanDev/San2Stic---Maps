@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const useRecordings = () => {
+export const useRecordings = () => {
   const [recordings, setRecordings] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -171,5 +171,3 @@ const useRecordings = () => {
     setError
   };
 };
-
-export default useRecordings;
