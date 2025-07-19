@@ -1,0 +1,20 @@
+FROM alpine:3.18
+
+RUN apk add --no-cache \
+    tor \
+    bash \
+    netcat-openbsd
+
+COPY torrc.simple /etc/tor/torrc
+COPY entrypoint.simple.sh /usr/local/bin/entrypoint.sh
+
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+RUN mkdir -p /var/lib/tor/hidden_service && \
+    chown -R tor /var/lib/tor
+
+USER tor
+
+EXPOSE 9050 9051
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

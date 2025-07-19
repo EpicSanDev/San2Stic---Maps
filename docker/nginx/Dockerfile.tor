@@ -1,0 +1,17 @@
+FROM nginx:1.25-alpine
+
+RUN apk add --no-cache \
+    bash \
+    curl \
+    netcat-openbsd
+
+COPY nginx.tor.conf /etc/nginx/nginx.conf
+COPY tor.conf.template /etc/nginx/templates/default.conf.template
+COPY entrypoint.tor.sh /usr/local/bin/entrypoint.sh
+
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+EXPOSE 80
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]

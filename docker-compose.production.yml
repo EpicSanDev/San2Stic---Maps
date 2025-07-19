@@ -1,0 +1,279 @@
+version: '3.8'
+
+services:
+  # Tor Hidden Service (sans adresse .onion personnalisée)
+  tor:
+    build:
+      context: ./docker/tor
+      dockerfile: Dockerfile.simple
+    volumes:
+      - tor_data:/var/lib/tor
+      - shared_data:/shared
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - nginx
+      - backend
+      - db
+      - ipfs
+      - icecast
+      - redis
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9050"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx pour Clear Web avec support Cloudflare
+  nginx-clearweb:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile.clearweb
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - CLOUDFLARE_ORIGIN_CERT_PATH=/etc/ssl/certs/cloudflare-origin.pem
+      - CLOUDFLARE_ORIGIN_KEY_PATH=/etc/ssl/private/cloudflare-origin.key
+      - DOMAIN_NAME=${DOMAIN_NAME:-san2stic.com}
+    volumes:
+      - nginx_cache:/var/cache/nginx
+      - nginx_logs:/var/log/nginx
+      - shared_data:/shared
+      - ./ssl:/etc/ssl/cloudflare:ro
+    depends_on:
+      - backend
+      - icecast
+      - ipfs
+      - frontend
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx pour Tor (configuration simplifiée)
+  nginx-tor:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile.tor
+    volumes:
+      - nginx_cache_tor:/var/cache/nginx
+      - nginx_logs_tor:/var/log/nginx
+      - shared_data:/shared
+    depends_on:
+      - backend
+      - icecast
+      - ipfs
+      - frontend
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Self-hosted IPFS Node
+  ipfs:
+    build:
+      context: ./docker/ipfs
+      dockerfile: Dockerfile
+    environment:
+      - IPFS_PATH=/data/ipfs
+    volumes:
+      - ipfs_data:/data/ipfs
+      - ipfs_staging:/export
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ipfs", "id"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Enhanced Backend with Security Improvements
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../infra/Dockerfile.backend
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://san2stic:${POSTGRES_PASSWORD}@db:5432/san2stic
+      - JWT_SECRET=${JWT_SECRET}
+      - IPFS_HOST=ipfs
+      - IPFS_PORT=5001
+      - IPFS_PROTOCOL=http
+      - IPFS_GATEWAY_URL=http://ipfs:8080/ipfs/
+      - ICECAST_URL=http://icecast:8000
+      - ICECAST_MOUNT=/stream
+      - PORT=4000
+      - BLOCKCHAIN_RPC_URL=${BLOCKCHAIN_RPC_URL}
+      - SAN2STIC_MAIN_CONTRACT=${SAN2STIC_MAIN_CONTRACT}
+      - CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+    volumes:
+      - shared_data:/shared
+    depends_on:
+      db:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Enhanced Icecast Streaming Server
+  icecast:
+    build:
+      context: ./infra
+      dockerfile: Dockerfile.icecast
+    environment:
+      - ICECAST_SOURCE_PASSWORD=${ICECAST_SOURCE_PASSWORD}
+      - ICECAST_RELAY_PASSWORD=${ICECAST_RELAY_PASSWORD}
+      - ICECAST_ADMIN_USER=${ICECAST_ADMIN_USER}
+      - ICECAST_ADMIN_PASSWORD=${ICECAST_ADMIN_PASSWORD}
+      - ICECAST_HOSTNAME=${DOMAIN_NAME:-localhost}
+    volumes:
+      - ./infra/icecast.xml:/etc/icecast2/icecast.xml
+      - icecast_logs:/var/log/icecast
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/status.xsl"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend React Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - REACT_APP_API_URL_CLEARWEB=https://${DOMAIN_NAME:-san2stic.com}/api
+      - REACT_APP_API_URL_TOR=http://nginx-tor/api
+      - REACT_APP_ICECAST_URL_CLEARWEB=https://${DOMAIN_NAME:-san2stic.com}/stream
+      - REACT_APP_ICECAST_URL_TOR=http://nginx-tor/stream
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL Database with Performance Tuning
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=san2stic
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=san2stic
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U san2stic"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+
+  # Redis Cache for Performance
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # Cloudflare Tunnel (optionnel pour connexion directe)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - nginx-clearweb
+
+  # Monitoring et Health Checks
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=3600
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  ipfs_data:
+    driver: local
+  ipfs_staging:
+    driver: local
+  tor_data:
+    driver: local
+  shared_data:
+    driver: local
+  nginx_cache:
+    driver: local
+  nginx_logs:
+    driver: local
+  nginx_cache_tor:
+    driver: local
+  nginx_logs_tor:
+    driver: local
+  icecast_logs:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

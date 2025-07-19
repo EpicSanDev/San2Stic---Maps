@@ -1,0 +1,23 @@
+FROM nginx:1.25-alpine
+
+RUN apk add --no-cache \
+    bash \
+    openssl \
+    curl \
+    netcat-openbsd \
+    certbot \
+    certbot-nginx
+
+COPY nginx.clearweb.conf /etc/nginx/nginx.conf
+COPY clearweb.conf.template /etc/nginx/templates/default.conf.template
+COPY entrypoint.clearweb.sh /usr/local/bin/entrypoint.sh
+
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Créer les répertoires pour les certificats SSL
+RUN mkdir -p /etc/ssl/cloudflare /var/cache/nginx /var/log/nginx
+
+EXPOSE 80 443
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]

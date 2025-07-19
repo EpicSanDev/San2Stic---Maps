@@ -1,0 +1,12 @@
+SocksPort 0.0.0.0:9050
+ControlPort 0.0.0.0:9051
+
+DataDirectory /var/lib/tor
+PidFile /var/lib/tor/tor.pid
+
+# Service caché simple (sans adresse personnalisée)
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 80 nginx-tor:80
+
+Log notice stdout
+RunAsDaemon 0
