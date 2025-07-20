@@ -3,7 +3,7 @@ import MapView from '../components/MapView';
 import { useRecordings } from '../hooks/useRecordings';
 
 const MapPage = () => {
-  const { recordings, isLoading, error } = useRecordings();
+  const { recordings, isLoading, error, fetchRecordingsFromContract } = useRecordings();
 
   if (isLoading) {
     return (
@@ -33,7 +33,7 @@ const MapPage = () => {
     <div className="h-screen flex flex-col bg-background">
       {/* Vous pouvez ajouter un Navbar ou d'autres éléments ici si nécessaire */}
       <div className="flex-grow p-4 md:p-0">
-        <MapView recordings={recordings} />
+        <MapView recordings={recordings} onBoundsChange={fetchRecordingsFromContract} />
       </div>
     </div>
   );

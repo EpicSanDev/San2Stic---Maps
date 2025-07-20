@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { ethers } from 'ethers';
+import San2SticMapMain from '../contracts/San2SticMapMain.json'; // Assuming you have the ABI here
+
+const contractAddress = '0x34b52da97a0e0fd89a79217c4b934e8af4f4d874';
 
 export const useRecordings = () => {
   const [recordings, setRecordings] = useState([]);
@@ -155,6 +159,28 @@ export const useRecordings = () => {
     }
   }, [fetchRecordings]);
 
+  const fetchRecordingsFromContract = useCallback(async (bounds) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      if (typeof window.ethereum !== 'undefined') {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const contract = new ethers.Contract(contractAddress, San2SticMapMain.abi, provider);
+        const { minLat, maxLat, minLng, maxLng } = bounds;
+        const data = await contract.getRecordingsByLocationOptimized(minLat, maxLat, minLng, maxLng);
+        setRecordings(data);
+      } else {
+        setError('Please install MetaMask!');
+      }
+    } catch (err) {
+      const errorMessage = err.message || 'Error fetching recordings from contract';
+      setError(errorMessage);
+      console.error("Error fetching recordings from contract:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return { 
     recordings, 
     totalCount,
@@ -168,6 +194,7 @@ export const useRecordings = () => {
     createRecording,
     updateRecording,
     deleteRecording,
-    setError
+    setError,
+    fetchRecordingsFromContract
   };
 };

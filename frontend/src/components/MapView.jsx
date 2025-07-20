@@ -66,7 +66,7 @@ const RecordingPopup = ({ recording, onClose }) => {
   );
 };
 
-const MapView = ({ recordings: propRecordings, height = 'calc(100vh - 80px)' }) => {
+const MapView = ({ recordings: propRecordings, onBoundsChange, height = 'calc(100vh - 80px)' }) => {
   const { recordings: hookRecordings, isLoading, error } = useRecordings();
   const [selectedRecording, setSelectedRecording] = useState(null);
   const [viewState, setViewState] = useState({
@@ -131,7 +131,17 @@ const MapView = ({ recordings: propRecordings, height = 'calc(100vh - 80px)' }) 
     <div className="w-full h-full rounded-lg overflow-hidden shadow-2xl" style={{ height }}>
       <Map
         {...viewState}
-        onMove={evt => setViewState(evt.viewState)}
+        onMoveEnd={evt => {
+          if (onBoundsChange) {
+            const bounds = evt.target.getBounds();
+            onBoundsChange({
+              minLat: bounds.getSouth(),
+              maxLat: bounds.getNorth(),
+              minLng: bounds.getWest(),
+              maxLng: bounds.getEast(),
+            });
+          }
+        }}
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle="mapbox://styles/mapbox/dark-v10"
         style={{ width: '100%', height: '100%' }}
