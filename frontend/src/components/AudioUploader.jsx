@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWeb3 } from '../hooks/useWeb3';
 
 export const AudioUploader = ({ onUploadComplete }) => {

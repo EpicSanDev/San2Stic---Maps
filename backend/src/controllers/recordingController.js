@@ -96,10 +96,28 @@ exports.createRecording = async (req, res) => {
 
       const ipfsResult = await uploadToIPFS(req.file.buffer, filename, metadata);
 
-      // Add to ezstream playlist
-      const playlistPath = '/var/log/ezstream/playlist.m3u';
-      const playlistEntry = `#EXTINF:-1,${artist} - ${title}\n${ipfsResult.url}\n`;
-      fs.appendFileSync(playlistPath, playlistEntry);
+      // Add to ezstream playlist (with error handling)
+      try {
+        const playlistPath = '/var/log/ezstream/playlist.m3u';
+        const playlistEntry = `#EXTINF:-1,${artist} - ${title}\n${ipfsResult.url}\n`;
+        
+        // Ensure directory exists
+        const path = require('path');
+        const dir = path.dirname(playlistPath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        
+        // Create playlist file if it doesn't exist
+        if (!fs.existsSync(playlistPath)) {
+          fs.writeFileSync(playlistPath, '#EXTM3U\n');
+        }
+        
+        fs.appendFileSync(playlistPath, playlistEntry);
+      } catch (playlistError) {
+        console.warn('Failed to update playlist:', playlistError.message);
+        // Don't fail the entire request if playlist update fails
+      }
       
       const duration = req.body.duration || 0;
 

@@ -1,0 +1,10 @@
+# San2Stic Radio Playlist
+# Fichier de test pour éviter l'erreur 404
+# Remplacez par vos vrais fichiers audio
+
+# Exemple de fichier audio (créez ce fichier ou utilisez un fichier existant)
+/var/log/ezstream/silence.mp3
+
+# Vous pouvez ajouter d'autres fichiers audio ici
+# /path/to/your/audio/file1.mp3
+# /path/to/your/audio/file2.mp3

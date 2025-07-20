@@ -76,7 +76,17 @@ exports.walletLogin = async (req, res) => {
     const address = req.userAddress.toLowerCase();
     let user = await User.findOne({ where: { walletAddress: address } });
     if (!user) {
+      // Créer un utilisateur avec des données temporaires pour éviter les contraintes NOT NULL
+      // L'utilisateur pourra mettre à jour ses informations plus tard dans son profil
+      const tempEmail = `wallet_${address.slice(2, 10)}@san2stic.temp`;
+      const tempUsername = `user_${address.slice(2, 8)}`;
+      // Générer un mot de passe temporaire aléatoire (l'utilisateur utilise son portefeuille pour l'auth)
+      const tempPassword = `temp_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
+      
       user = await User.create({
+        email: tempEmail,
+        username: tempUsername,
+        password: tempPassword,
         walletAddress: address,
         role: 'user',
       });

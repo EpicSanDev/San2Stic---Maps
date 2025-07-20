@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { ethers } from 'ethers';
-import San2SticMapMain from '../contracts/San2SticMapMain.json'; // Assuming you have the ABI here
+import San2SticMapMain from '../contracts/San2SticMapMain.json';
 
 const contractAddress = '0x34b52da97a0e0fd89a79217c4b934e8af4f4d874';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
+
+// Configure axios defaults
+axios.defaults.baseURL = API_BASE_URL;
 
 export const useRecordings = () => {
   const [recordings, setRecordings] = useState([]);
