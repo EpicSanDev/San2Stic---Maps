@@ -152,11 +152,11 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Add New Recording</h2>
+    <div className="max-w-2xl mx-auto bg-gray-800 text-white rounded-lg shadow-lg p-6">
+      <h2 className="text-2xl font-bold text-white mb-6">Add New Recording</h2>
       
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div className="mb-4 p-4 bg-red-500 border border-red-700 rounded-lg text-white">
           {error}
         </div>
       )}
@@ -164,7 +164,7 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Title *
             </label>
             <input
@@ -174,13 +174,13 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
               onChange={handleInputChange}
               required
               maxLength={100}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Recording title"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Artist *
             </label>
             <input
@@ -189,14 +189,14 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
               value={formData.artist}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Artist name"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Description
           </label>
           <textarea
@@ -204,165 +204,145 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
             value={formData.description}
             onChange={handleInputChange}
             maxLength={500}
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Describe your recording..."
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Audio File *
-          </label>
-          <input
-            type="file"
-            accept="audio/*"
-            onChange={handleFileChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            Supported formats: MP3, WAV, OGG, MP4 (max 50MB)
-          </p>
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="A brief description of your recording..."
+          ></textarea>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Latitude *
             </label>
             <input
-              type="number"
+              type="text"
               name="latitude"
               value={formData.latitude}
               onChange={handleInputChange}
               required
-              step="any"
-              min={-90}
-              max={90}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="e.g., 48.8566"
             />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Longitude *
             </label>
             <input
-              type="number"
+              type="text"
               name="longitude"
               value={formData.longitude}
               onChange={handleInputChange}
               required
-              step="any"
-              min={-180}
-              max={180}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="e.g., 2.3522"
             />
           </div>
         </div>
 
-        <div>
-          <button
-            type="button"
-            onClick={getCurrentLocation}
-            disabled={locationLoading}
-            className="mb-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {locationLoading ? 'Getting location...' : 'Use Current Location'}
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              License
-            </label>
-            <select
-              name="license"
-              value={formData.license}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {LICENSE_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Quality
-            </label>
-            <select
-              name="quality"
-              value={formData.quality}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {QUALITY_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="useCurrentLocation"
+            checked={useCurrentLocation}
+            onChange={(e) => {
+              setUseCurrentLocation(e.target.checked);
+              if (e.target.checked) {
+                getCurrentLocation();
+              }
+            }}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label htmlFor="useCurrentLocation" className="ml-2 block text-sm text-gray-300">
+            Use my current location
+          </label>
+          {locationLoading && <div className="ml-4 text-sm text-blue-400">Getting location...</div>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Tags
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Tags (comma-separated)
           </label>
           <input
             type="text"
             name="tags"
             value={formData.tags}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="nature, ambient, field-recording (comma separated)"
+            className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="e.g., nature, forest, birds"
           />
-          <p className="text-sm text-gray-500 mt-1">
-            Separate tags with commas (max 10 tags)
-          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Equipment
+            </label>
+            <input
+              type="text"
+              name="equipment"
+              value={formData.equipment}
+              onChange={handleInputChange}
+              maxLength={100}
+              className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., Zoom H4n"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              License
+            </label>
+            <select
+              name="license"
+              value={formData.license}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {LICENSE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Equipment
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Audio File *
           </label>
-          <input
-            type="text"
-            name="equipment"
-            value={formData.equipment}
-            onChange={handleInputChange}
-            maxLength={100}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="e.g., Zoom H5, Rode NTG3"
-          />
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-600 border-dashed rounded-md">
+            <div className="space-y-1 text-center">
+              <svg className="mx-auto h-12 w-12 text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <div className="flex text-sm text-gray-400">
+                <label htmlFor="file-upload" className="relative cursor-pointer bg-gray-700 rounded-md font-medium text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-800 focus-within:ring-blue-500">
+                  <span>Upload a file</span>
+                  <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4" />
+                </label>
+                <p className="pl-1">or drag and drop</p>
+              </div>
+              <p className="text-xs text-gray-500">MP3, WAV, OGG, MP4 up to 50MB</p>
+            </div>
+          </div>
+          {audioFile && <p className="mt-2 text-sm text-gray-400">Selected: {audioFile.name}</p>}
         </div>
 
-        <div className="flex gap-4 pt-4">
+        <div className="flex items-center justify-end space-x-4 pt-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-6 py-2 border border-gray-600 rounded-lg text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            Cancel
+          </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Creating...' : 'Create Recording'}
+            {isLoading ? 'Submitting...' : 'Submit Recording'}
           </button>
-          
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
-            >
-              Cancel
-            </button>
-          )}
         </div>
       </form>
     </div>

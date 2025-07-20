@@ -1,19 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-markercluster';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'react-leaflet-markercluster/dist/styles.min.css';
+import React, { useState, useMemo } from 'react';
+import Map, { Marker, Popup, NavigationControl, FullscreenControl, ScaleControl, GeolocateControl } from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { useRecordings } from '../hooks/useRecordings';
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-});
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 
-const RecordingPopup = ({ recording }) => {
+const RecordingPopup = ({ recording, onClose }) => {
   const formatDuration = (seconds) => {
     if (!seconds) return 'Unknown duration';
     const minutes = Math.floor(seconds / 60);
@@ -26,36 +18,37 @@ const RecordingPopup = ({ recording }) => {
   };
 
   return (
-    <div className="p-3 min-w-[250px]">
-      <h3 className="font-bold text-lg text-gray-800 mb-1">{recording.title}</h3>
-      <p className="text-gray-600 mb-2">by {recording.artist}</p>
+    <div className="bg-gray-800 text-white rounded-lg shadow-xl p-4 max-w-xs w-full">
+      <button onClick={onClose} className="absolute top-2 right-2 text-gray-400 hover:text-white">&times;</button>
+      <h3 className="font-bold text-lg mb-2">{recording.title}</h3>
+      <p className="text-gray-400 mb-3">by {recording.artist}</p>
       
       {recording.description && (
-        <p className="text-sm text-gray-700 mb-2">{recording.description}</p>
+        <p className="text-sm text-gray-300 mb-3">{recording.description}</p>
       )}
       
-      <div className="flex flex-wrap gap-1 mb-2">
+      <div className="flex flex-wrap gap-2 mb-3">
         {recording.tags && recording.tags.map((tag, index) => (
-          <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+          <span key={index} className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
             {tag}
           </span>
         ))}
       </div>
       
-      <div className="text-xs text-gray-500 mb-2 space-y-1">
+      <div className="text-xs text-gray-400 mb-3 space-y-1">
         <div>Duration: {formatDuration(recording.duration)}</div>
         <div>Quality: {recording.quality}</div>
         <div>License: {formatLicense(recording.license)}</div>
         {recording.equipment && <div>Equipment: {recording.equipment}</div>}
         {recording.User && (
           <div>
-            Uploaded by: {recording.User.username || recording.User.email}
+            Uploader: {recording.User.username || recording.User.email}
             {recording.User.reputation && ` (${recording.User.reputation} rep)`}
           </div>
         )}
       </div>
       
-      <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
+      <div className="flex items-center gap-4 mb-3 text-xs text-gray-400">
         <span>👍 {recording.upvotes || 0}</span>
         <span>👎 {recording.downvotes || 0}</span>
         {recording.ratingCount > 0 && (
@@ -73,30 +66,40 @@ const RecordingPopup = ({ recording }) => {
   );
 };
 
-const MapView = ({ recordings: propRecordings, height = '500px' }) => {
+const MapView = ({ recordings: propRecordings, height = 'calc(100vh - 80px)' }) => {
   const { recordings: hookRecordings, isLoading, error } = useRecordings();
-  const [map, setMap] = useState(null);
-  
+  const [selectedRecording, setSelectedRecording] = useState(null);
+  const [viewState, setViewState] = useState({
+    longitude: 2.3522,
+    latitude: 48.8566,
+    zoom: 5
+  });
+
   const recordings = propRecordings || hookRecordings;
 
-  useEffect(() => {
-    if (map && recordings.length > 0) {
-      const group = new L.featureGroup(recordings.map(recording => 
-        L.marker([parseFloat(recording.latitude), parseFloat(recording.longitude)])
-      ));
-      
-      if (group.getBounds().isValid()) {
-        map.fitBounds(group.getBounds().pad(0.1));
-      }
-    }
-  }, [map, recordings]);
+  const markers = useMemo(() => recordings.map(rec => (
+    <Marker 
+      key={rec.id} 
+      longitude={parseFloat(rec.longitude)} 
+      latitude={parseFloat(rec.latitude)}
+      anchor="bottom"
+      onClick={e => {
+        e.originalEvent.stopPropagation();
+        setSelectedRecording(rec);
+      }}
+    >
+       <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500 drop-shadow-lg" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+      </svg>
+    </Marker>
+  )), [recordings]);
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center bg-gray-100 rounded-lg" style={{ height }}>
+      <div className="flex justify-center items-center bg-gray-900 text-white rounded-lg" style={{ height }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading recordings...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading Map & Recordings...</p>
         </div>
       </div>
     );
@@ -104,10 +107,10 @@ const MapView = ({ recordings: propRecordings, height = '500px' }) => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center bg-red-50 border border-red-200 rounded-lg" style={{ height }}>
-        <div className="text-center text-red-600">
+      <div className="flex justify-center items-center bg-red-900 bg-opacity-50 border border-red-700 text-white rounded-lg" style={{ height }}>
+        <div className="text-center">
           <p className="font-semibold">Error loading map</p>
-          <p className="text-sm">{error}</p>
+          <p className="text-sm text-red-300">{error}</p>
         </div>
       </div>
     );
@@ -115,40 +118,44 @@ const MapView = ({ recordings: propRecordings, height = '500px' }) => {
 
   if (!recordings || recordings.length === 0) {
     return (
-      <div className="flex justify-center items-center bg-gray-100 rounded-lg" style={{ height }}>
-        <div className="text-center text-gray-600">
+      <div className="flex justify-center items-center bg-gray-900 text-white rounded-lg" style={{ height }}>
+        <div className="text-center text-gray-400">
           <p className="text-lg font-semibold">No recordings found</p>
-          <p className="text-sm">Upload some recordings to see them on the map</p>
+          <p className="text-sm">Upload a recording to see it on the map.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full rounded-lg overflow-hidden shadow-lg" style={{ height }}>
-      <MapContainer
-        center={[46.603354, 1.888334]}
-        zoom={5}
-        style={{ height: '100%', width: '100%' }}
-        whenCreated={setMap}
+    <div className="w-full h-full rounded-lg overflow-hidden shadow-2xl" style={{ height }}>
+      <Map
+        {...viewState}
+        onMove={evt => setViewState(evt.viewState)}
+        mapboxAccessToken={MAPBOX_TOKEN}
+        mapStyle="mapbox://styles/mapbox/dark-v10"
+        style={{ width: '100%', height: '100%' }}
       >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        <MarkerClusterGroup>
-          {recordings.map((recording) => (
-            <Marker
-              key={recording._id || recording.id}
-              position={[parseFloat(recording.latitude), parseFloat(recording.longitude)]}
-            >
-              <Popup maxWidth={300} className="custom-popup">
-                <RecordingPopup recording={recording} />
-              </Popup>
-            </Marker>
-          ))}
-        </MarkerClusterGroup>
-      </MapContainer>
+        <GeolocateControl position="top-left" />
+        <FullscreenControl position="top-left" />
+        <NavigationControl position="top-left" />
+        <ScaleControl />
+
+        {markers}
+
+        {selectedRecording && (
+          <Popup
+            longitude={parseFloat(selectedRecording.longitude)}
+            latitude={parseFloat(selectedRecording.latitude)}
+            onClose={() => setSelectedRecording(null)}
+            closeOnClick={false}
+            anchor="bottom"
+            className="z-10"
+          >
+            <RecordingPopup recording={selectedRecording} onClose={() => setSelectedRecording(null)} />
+          </Popup>
+        )}
+      </Map>
     </div>
   );
 };
