@@ -83,9 +83,32 @@ export class Web3Service {
     return await tx.wait();
   }
 
+  async uploadAudioToIPFS(audioFile) {
+    if (!this.signer) {
+      throw new Error('Wallet non connectée');
+    }
+
+    const formData = new FormData();
+    formData.append('file', audioFile);
+    
+    const signature = await this.signer.signMessage('Sign to upload to IPFS');
+    
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/ipfs/upload`, {
+      method: 'POST',
+      headers: {
+        'X-Signature': signature,
+        'X-Address': await this.getAddress()
+      },
+      body: formData
+    });
+
+    if (!response.ok) throw new Error('Échec upload IPFS');
+    return await response.json();
+  }
+
   async addRecording(recordingData) {
     if (!this.contracts.recordingManager) {
-      throw new Error('Contract not initialized');
+      throw new Error('Contract non initialisé');
     }
     
     const {
