@@ -164,7 +164,7 @@ export const useRecordings = () => {
     setError(null);
     try {
       if (typeof window.ethereum !== 'undefined') {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const provider = new ethers.BrowserProvider(window.ethereum);
         const contract = new ethers.Contract(contractAddress, San2SticMapMain.abi, provider);
         const { minLat, maxLat, minLng, maxLng } = bounds;
         const data = await contract.getRecordingsByLocationOptimized(minLat, maxLat, minLng, maxLng);
