@@ -70,3 +70,30 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Error logging in user.', error: error.message });
   }
 };
+
+exports.walletLogin = async (req, res) => {
+  try {
+    const address = req.userAddress.toLowerCase();
+    let user = await User.findOne({ where: { walletAddress: address } });
+    if (!user) {
+      user = await User.create({
+        walletAddress: address,
+        role: 'user',
+      });
+    }
+    const token = generateToken({ id: user.id, role: user.role });
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      reputation: user.reputation,
+      registrationTimestamp: user.registrationTimestamp,
+      walletAddress: user.walletAddress
+    };
+    res.status(200).json({ token, user: userResponse });
+  } catch (error) {
+    console.error('Wallet login error:', error);
+    res.status(500).json({ message: 'Error with wallet login.', error: error.message });
+  }
+};

@@ -78,5 +78,23 @@ export const useAuth = () => {
     // Optionnel: Informer le backend de la déconnexion
   }, []);
 
-  return { user, token, login, logout, signup, error, loading, setError };
+  const walletLogin = useCallback(async (address, signature, message) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post(`${API_URL}/auth/wallet-login`, { address, signature, message });
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      setToken(token);
+      setUser(user);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 'Wallet login failed';
+      setError(errorMessage);
+      console.error('Wallet login error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  return { user, token, loading, error, signup, login, logout, walletLogin };
 };

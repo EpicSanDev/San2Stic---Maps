@@ -1,24 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth'; // Assurez-vous que le chemin est correct
+import { useAuth } from '../hooks/useAuth';
+import { useWeb3 } from '../hooks/useWeb3';
+import { ethers } from 'ethers';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, loading, error, setError, user } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { walletLogin, loading, error, setError, user } = useAuth();
+  const { connectWallet, isConnected, address } = useWeb3();
+  const [localLoading, setLocalLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
-      navigate('/'); // Redirige si l'utilisateur est déjà connecté (ou après une connexion réussie)
+      navigate('/');
     }
   }, [user, navigate]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null); // Réinitialiser les erreurs précédentes
-    // La redirection est gérée par le useEffect ci-dessus
-    await login(email, password);
+  const handleWalletLogin = async () => {
+    setLocalLoading(true);
+    setError(null);
+    try {
+      await connectWallet();
+    } catch (err) {
+      setError('Failed to connect wallet');
+      setLocalLoading(false);
+      return;
+    }
+    if (isConnected && address) {
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const message = `Login to San2Stic at ${new Date().toISOString()}`;
+        const signature = await signer.signMessage(message);
+        await walletLogin(address, signature, message);
+      } catch (err) {
+        setError('Wallet login failed');
+        console.error(err);
+      }
+    }
+    setLocalLoading(false);
   };
 
   return (
@@ -26,73 +46,32 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8 p-8 sm:p-10 bg-white shadow-2xl rounded-xl">
         <div>
           <h1 className="mt-6 text-center text-3xl font-extrabold text-text-primary">
-            Se connecter à votre compte
+            Se connecter avec votre wallet
           </h1>
         </div>
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative transition-opacity duration-300 ease-in-out" role="alert">
-              <strong className="font-bold">Erreur: </strong>
-              <span className="block sm:inline">{error}</span>
-            </div>
-          )}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email-address" className="sr-only">Adresse Email</label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral placeholder-text-secondary text-text-primary rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm transition-colors duration-300 ease-in-out"
-                placeholder="Adresse Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Mot de passe</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral placeholder-text-secondary text-text-primary rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm transition-colors duration-300 ease-in-out"
-                placeholder="Mot de passe"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-              />
-            </div>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative transition-opacity duration-300 ease-in-out" role="alert">
+            <strong className="font-bold">Erreur: </strong>
+            <span className="block sm:inline">{error}</span>
           </div>
-
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              {/* Vous pouvez ajouter un lien "Mot de passe oublié ?" ici si nécessaire */}
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-primary/50 transition-all duration-300 ease-in-out ${loading ? 'animate-pulse' : ''}`}
-            >
-              {loading ? (
-                <>
-                  <svg aria-hidden="true" className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Connexion en cours...
-                </>
-              ) : 'Se connecter'}
-            </button>
-          </div>
-        </form>
+        )}
+        <div>
+          <button
+            onClick={handleWalletLogin}
+            disabled={loading || localLoading}
+            className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-primary/50 transition-all duration-300 ease-in-out ${loading || localLoading ? 'animate-pulse' : ''}`}
+          >
+            {loading || localLoading ? (
+              <>
+                <svg aria-hidden="true" className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Connexion en cours...
+              </>
+            ) : 'Se connecter avec Metamask'}
+          </button>
+        </div>
         <div className="text-sm text-center">
           <p className="text-text-secondary">
             Pas encore de compte?{' '}

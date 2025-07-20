@@ -5,9 +5,9 @@ const bcrypt = require('bcryptjs');
 const User = sequelize.define('User', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   blockchainId: { type: DataTypes.INTEGER, allowNull: true, unique: true },
-  email: { type: DataTypes.STRING, allowNull: false, unique: true },
+  email: { type: DataTypes.STRING, allowNull: true, unique: true },
   username: { type: DataTypes.STRING(32), allowNull: true, unique: true },
-  password: { type: DataTypes.STRING, allowNull: false },
+  password: { type: DataTypes.STRING, allowNull: true },
   walletAddress: { type: DataTypes.STRING(42), allowNull: true, unique: true },
   role: { type: DataTypes.ENUM('user', 'moderator', 'admin'), defaultValue: 'user' },
   reputation: { type: DataTypes.INTEGER, defaultValue: 100 },
@@ -26,7 +26,7 @@ User.beforeCreate(async (user) => {
 });
 
 User.beforeUpdate(async (user) => {
-  if (user.changed('password')) {
+  if (user.changed('password') && user.password) {
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(user.password, salt);
   }
