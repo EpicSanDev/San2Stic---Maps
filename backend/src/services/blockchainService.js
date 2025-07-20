@@ -1,6 +1,11 @@
 const { ethers } = require('ethers');
 const User = require('../models/user');
 const Recording = require('../models/recording');
+const San2SticMapMainABI = require('../../../frontend/src/contracts/San2SticMapMain.json').abi;
+const San2SticMapABI = require('../../../frontend/src/contracts/San2SticMap.json').abi;
+const RecordingManagerABI = require('../../../frontend/src/contracts/RecordingManager.json').abi;
+const LicenseManagerABI = require('../../../frontend/src/contracts/LicenseManager.json').abi;
+const VotingSystemABI = require('../../../frontend/src/contracts/VotingSystem.json').abi;
 
 class BlockchainService {
   constructor() {
@@ -22,6 +27,14 @@ class BlockchainService {
         recordingManager: process.env.RECORDING_MANAGER_CONTRACT || '0x114a7e7fb13d65ad3dabbc9874ba2dbc4fe35723',
         licenseManager: process.env.LICENSE_MANAGER_CONTRACT || '0x44d7653f0ebae21cb68841eed645be4d0cd239f8',
         votingSystem: process.env.VOTING_SYSTEM_CONTRACT || '0xc40456ce14809c5e346759a600222ae9229d594a'
+      };
+      
+      this.contracts = {
+        mainContract: new ethers.Contract(contractAddresses.mainContract, San2SticMapMainABI, this.provider),
+        san2sticMap: new ethers.Contract(contractAddresses.san2sticMap, San2SticMapABI, this.provider),
+        recordingManager: new ethers.Contract(contractAddresses.recordingManager, RecordingManagerABI, this.provider),
+        licenseManager: new ethers.Contract(contractAddresses.licenseManager, LicenseManagerABI, this.provider),
+        votingSystem: new ethers.Contract(contractAddresses.votingSystem, VotingSystemABI, this.provider)
       };
       
       this.contractAddresses = contractAddresses;

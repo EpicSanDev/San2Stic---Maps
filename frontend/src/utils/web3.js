@@ -1,4 +1,9 @@
 import { ethers } from 'ethers';
+import San2SticMapMainABI from '../contracts/San2SticMapMain.json';
+import San2SticMapABI from '../contracts/San2SticMap.json';
+import RecordingManagerABI from '../contracts/RecordingManager.json';
+import LicenseManagerABI from '../contracts/LicenseManager.json';
+import VotingSystemABI from '../contracts/VotingSystem.json';
 
 const CONTRACTS = {
   SAN2STIC_MAP_MAIN: '0x34b52da97a0e0fd89a79217c4b934e8af4f4d874',
@@ -67,10 +72,11 @@ export class Web3Service {
 
   async initializeContracts() {
     this.contracts = {
-      san2sticMap: null,
-      recordingManager: null,
-      licenseManager: null,
-      votingSystem: null
+      san2sticMapMain: new ethers.Contract(CONTRACTS.SAN2STIC_MAP_MAIN, San2SticMapMainABI.abi, this.signer),
+      san2sticMap: new ethers.Contract(CONTRACTS.SAN2STIC_MAP, San2SticMapABI.abi, this.signer),
+      recordingManager: new ethers.Contract(CONTRACTS.RECORDING_MANAGER, RecordingManagerABI.abi, this.signer),
+      licenseManager: new ethers.Contract(CONTRACTS.LICENSE_MANAGER, LicenseManagerABI.abi, this.signer),
+      votingSystem: new ethers.Contract(CONTRACTS.VOTING_SYSTEM, VotingSystemABI.abi, this.signer)
     };
   }
 
