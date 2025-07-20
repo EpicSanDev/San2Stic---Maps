@@ -79,9 +79,9 @@ exports.createRecording = async (req, res) => {
       return res.status(400).json({ error: 'Audio file is required.' });
     }
 
-    const allowedMimeTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4'];
+    const allowedMimeTypes = ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/mp4'];
     if (!allowedMimeTypes.includes(req.file.mimetype)) {
-      return res.status(400).json({ error: 'Invalid audio file format.' });
+      return res.status(400).json({ error: 'Please select a valid audio file (MP3, WAV, OGG, or MP4)' });
     }
 
     try {
