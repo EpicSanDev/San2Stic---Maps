@@ -45,8 +45,8 @@ services:
   # Enhanced Backend with Security Improvements
   backend:
     build:
-      context: ./backend
-      dockerfile: ../infra/Dockerfile.backend
+      context: .
+      dockerfile: infra/Dockerfile.backend
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://san2stic:secure_password_change_this@db:5432/san2stic
@@ -59,6 +59,7 @@ services:
       - ICECAST_MOUNT=/stream
       - PORT=4000
     volumes:
+      - ./contracts:/contracts
       - shared_data:/shared
       - ezstream_playlist:/var/log/ezstream
     depends_on:

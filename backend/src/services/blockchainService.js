@@ -1,11 +1,11 @@
 const { ethers } = require('ethers');
 const User = require('../models/user');
 const Recording = require('../models/recording');
-const San2SticMapMainABI = require('../../../contracts/out/San2SticMapMain.sol/San2SticMapMain.json').abi;
-const San2SticMapABI = require('../../../contracts/out/San2SticMap.sol/San2SticMap.json').abi;
-const RecordingManagerABI = require('../../../contracts/out/RecordingManager.sol/RecordingManager.json').abi;
-const LicenseManagerABI = require('../../../contracts/out/LicenseManager.sol/LicenseManager.json').abi;
-const VotingSystemABI = require('../../../contracts/out/VotingSystem.sol/VotingSystem.json').abi;
+const San2SticMapMainABI = require('../../contracts/out/San2SticMapMain.sol/San2SticMapMain.json').abi;
+const San2SticMapABI = require('../../contracts/out/San2SticMap.sol/San2SticMap.json').abi;
+const RecordingManagerABI = require('../../contracts/out/RecordingManager.sol/RecordingManager.json').abi;
+const LicenseManagerABI = require('../../contracts/out/LicenseManager.sol/LicenseManager.json').abi;
+const VotingSystemABI = require('../../contracts/out/VotingSystem.sol/VotingSystem.json').abi;
 
 class BlockchainService {
   constructor() {

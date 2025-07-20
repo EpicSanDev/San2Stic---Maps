@@ -6,13 +6,14 @@ RUN apk add --no-cache curl
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY backend/package*.json ./
 
 # Install dependencies
 RUN npm ci --only=production
 
 # Copy source code
-COPY . ./
+COPY backend/src ./src
+COPY contracts ./contracts
 
 # Create uploads directory
 RUN mkdir -p uploads
