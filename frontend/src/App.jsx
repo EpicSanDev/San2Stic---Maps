@@ -8,8 +8,16 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import Upload from './pages/Upload';
+import { AudioUploader } from './components/AudioUploader';
 
 function App() {
+  const [uploadResult, setUploadResult] = useState(null);
+
+  const handleUploadComplete = (result) => {
+    setUploadResult(result);
+    // TODO: Ajouter à la carte avec les coordonnées
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Router>
@@ -26,6 +34,17 @@ function App() {
           </Routes>
         </main>
       </Router>
+      <AudioUploader onUploadComplete={handleUploadComplete} />
+      
+      {uploadResult && (
+        <div className="mt-4 p-4 bg-green-100 rounded">
+          <h3>Upload réussi!</h3>
+          <p>Hash IPFS: {uploadResult.ipfsHash}</p>
+          <a href={uploadResult.ipfsUrl} target="_blank" rel="noreferrer">
+            Voir sur IPFS
+          </a>
+        </div>
+      )}
     </div>
   );
 }
