@@ -4,6 +4,7 @@ const { uploadToIPFS, gatewayUrl } = require('../config/ipfs');
 const blockchainService = require('../services/blockchainService');
 const { v4: uuidv4 } = require('uuid');
 const Joi = require('joi');
+const fs = require('fs');
 
 const createRecordingSchema = Joi.object({
   title: Joi.string().max(100).required(),
@@ -94,6 +95,11 @@ exports.createRecording = async (req, res) => {
       };
 
       const ipfsResult = await uploadToIPFS(req.file.buffer, filename, metadata);
+
+      // Add to ezstream playlist
+      const playlistPath = '/var/log/ezstream/playlist.m3u';
+      const playlistEntry = `#EXTINF:-1,${artist} - ${title}\n${ipfsResult.url}\n`;
+      fs.appendFileSync(playlistPath, playlistEntry);
       
       const duration = req.body.duration || 0;
 

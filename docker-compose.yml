@@ -60,6 +60,7 @@ services:
       - PORT=4000
     volumes:
       - shared_data:/shared
+      - ezstream_playlist:/var/log/ezstream
     depends_on:
       db:
         condition: service_healthy
@@ -93,6 +94,24 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/status.xsl"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ezstream:
+    build:
+      context: ./docker/ezstream
+      dockerfile: Dockerfile
+    volumes:
+      - ezstream_playlist:/var/log/ezstream
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - icecast
+      - ipfs
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep ezstream"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -221,6 +240,8 @@ volumes:
   nginx_logs:
     driver: local
   icecast_logs:
+    driver: local
+  ezstream_playlist:
     driver: local
   redis_data:
     driver: local
