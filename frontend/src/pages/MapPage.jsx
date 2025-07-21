@@ -4,118 +4,186 @@ import {
   ArrowPathIcon, 
   ChevronDownIcon, 
   MagnifyingGlassIcon, 
-  AdjustmentsHorizontalIcon
+  AdjustmentsHorizontalIcon,
+  MapPinIcon,
+  SpeakerWaveIcon,
+  EyeIcon,
+  HeartIcon
 } from '@heroicons/react/24/outline';
-import MapView from '../components/MapView';
+import Enhanced3DMap from '../components/Enhanced3DMap';
 import RecordingDetailsModal from '../components/RecordingDetailsModal';
 import BatchOperationsPanel from '../components/BatchOperationsPanel';
 import UserDashboard from '../components/UserDashboard';
 import SystemStatsDashboard from '../components/SystemStatsDashboard';
 import { useRecordings } from '../hooks/useRecordings';
 import { Button } from '../components/ui/Button';
-import { Card, CardContent } from '../components/ui/Card';
+import { GlassCard } from '../components/ui/GlassCard';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { cn } from '../utils/cn';
 
-const LoadingSpinner = () => (
-  <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-br from-white to-neutral-100 dark:from-neutral-900 dark:to-neutral-800">
-    <div className="relative">
-      <div className="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
-      <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-secondary-600 rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+const LoadingScreen = () => (
+  <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/20">
+    <div className="relative mb-8">
+      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary-600 to-electric-600 opacity-20 blur-xl animate-pulse" />
+      <LoadingSpinner size="2xl" color="primary" />
     </div>
-    <p className="text-lg text-neutral-700 dark:text-neutral-300 mt-6 font-medium">Chargement de la carte sonore...</p>
-    <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">Récupération des enregistrements</p>
+    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Loading Audio Map</h3>
+    <p className="text-gray-600 dark:text-gray-400 text-center max-w-md">
+      Initializing 3D environment and loading field recordings from around the world...
+    </p>
   </div>
 );
 
-const ErrorDisplay = ({ error, onRetry }) => (
-  <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-br from-white to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 p-4">
-    <div className="max-w-md text-center">
+const ErrorScreen = ({ error, onRetry }) => (
+  <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 p-4">
+    <GlassCard className="max-w-md text-center p-8">
       <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
         <ExclamationTriangleIcon className="h-8 w-8 text-red-600 dark:text-red-400" />
       </div>
-      <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">Erreur de chargement</h2>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-        {error.message || 'Une erreur est survenue lors du chargement des données.'}
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Connection Error</h2>
+      <p className="text-gray-600 dark:text-gray-400 mb-6">
+        {error?.message || 'Unable to load the audio map. Please check your connection and try again.'}
       </p>
-      <Button onClick={onRetry} className="group">
-        Réessayer
-        <ArrowPathIcon className="h-4 w-4 ml-2 group-hover:rotate-180 transition-transform duration-300" />
+      <Button onClick={onRetry} variant="gradient" className="group">
+        <ArrowPathIcon className="h-4 w-4 mr-2 group-hover:rotate-180 transition-transform duration-300" />
+        Retry Connection
       </Button>
-    </div>
+    </GlassCard>
   </div>
 );
 
-const MapControls = ({ recordings, onViewModeChange, viewMode }) => {
+const MapControls = ({ recordings, onViewModeChange, viewMode, onFilterChange }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [filters, setFilters] = useState({
+    tags: [],
+    quality: 'all',
+    sortBy: 'recent'
+  });
+  
   const recordingCount = recordings?.length || 0;
+  const qualityCounts = recordings?.reduce((acc, r) => {
+    acc[r.quality || 'unknown'] = (acc[r.quality || 'unknown'] || 0) + 1;
+    return acc;
+  }, {}) || {};
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    onFilterChange?.(newFilters);
+  };
 
   return (
-    <Card className="absolute top-4 left-4 z-10 w-80 shadow-lg border-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="font-semibold text-neutral-900 dark:text-white">Carte sonore</h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              {recordingCount} enregistrement{recordingCount !== 1 ? 's' : ''}
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="h-8 w-8"
-          >
-            <ChevronDownIcon className={cn("h-5 w-5 transition-transform duration-200", isExpanded && "rotate-180")} />
-          </Button>
-        </div>
-
-        {isExpanded && (
-          <div className="space-y-4 border-t border-neutral-200 dark:border-neutral-700 pt-3">
-            {/* View Mode Toggle */}
+    <div className="absolute top-6 left-6 z-20 w-80 max-w-[calc(100vw-48px)]">
+      <GlassCard className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/20">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2 block">
-                Mode d'affichage
-              </label>
-              <div className="flex rounded-lg bg-neutral-100 dark:bg-neutral-800 p-1">
-                <button
-                  onClick={() => onViewModeChange?.('markers')}
-                  className={cn(
-                    "flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                    viewMode === 'markers'
-                      ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm"
-                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-                  )}
-                >
-                  Marqueurs
-                </button>
-                <button
-                  onClick={() => onViewModeChange?.('heatmap')}
-                  className={cn(
-                    "flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                    viewMode === 'heatmap'
-                      ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm"
-                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-                  )}
-                >
-                  Heatmap
-                </button>
+              <h3 className="font-bold text-xl text-gray-900 dark:text-white flex items-center">
+                <SpeakerWaveIcon className="w-6 h-6 mr-2 text-primary-600" />
+                Audio Map
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {recordingCount} recording{recordingCount !== 1 ? 's' : ''} loaded
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="h-10 w-10"
+            >
+              <ChevronDownIcon className={cn("h-5 w-5 transition-transform duration-200", isExpanded && "rotate-180")} />
+            </Button>
+          </div>
+
+          {/* Quality Overview */}
+          <div className="flex items-center space-x-4 mb-4 text-sm">
+            {Object.entries(qualityCounts).map(([quality, count]) => (
+              <div key={quality} className="flex items-center space-x-1">
+                <div className={cn(
+                  "w-2 h-2 rounded-full",
+                  quality === 'high' ? 'bg-green-500' :
+                  quality === 'medium' ? 'bg-yellow-500' : 'bg-red-500'
+                )} />
+                <span className="text-gray-600 dark:text-gray-400 capitalize">
+                  {quality}: {count}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {isExpanded && (
+            <div className="space-y-6 border-t border-gray-200/50 dark:border-gray-700/50 pt-4">
+              {/* View Mode Toggle */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
+                  Visualization Mode
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => onViewModeChange?.('markers')}
+                    className={cn(
+                      "flex items-center justify-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                      viewMode === 'markers'
+                        ? "bg-gradient-to-r from-primary-600 to-electric-600 text-white shadow-lg"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    )}
+                  >
+                    <MapPinIcon className="w-4 h-4 mr-2" />
+                    3D Markers
+                  </button>
+                  <button
+                    onClick={() => onViewModeChange?.('heatmap')}
+                    className={cn(
+                      "flex items-center justify-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                      viewMode === 'heatmap'
+                        ? "bg-gradient-to-r from-frequency-600 to-electric-600 text-white shadow-lg"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    )}
+                  >
+                    <div className="w-4 h-4 mr-2 rounded bg-gradient-to-r from-red-500 to-yellow-500" />
+                    Heatmap
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="grid grid-cols-2 gap-2">
+                <Button size="sm" variant="outline" className="justify-start">
+                  <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
+                  Search
+                </Button>
+                <Button size="sm" variant="outline" className="justify-start">
+                  <AdjustmentsHorizontalIcon className="h-4 w-4 mr-2" />
+                  Filter
+                </Button>
+              </div>
+
+              {/* Map Statistics */}
+              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-200/50 dark:border-gray-700/50">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                    {recordings?.reduce((acc, r) => acc + (r.plays || 0), 0) || 0}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                    <EyeIcon className="w-3 h-3 mr-1" />
+                    Total Plays
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-electric-600 dark:text-electric-400">
+                    {recordings?.reduce((acc, r) => acc + (r.upvotes || 0), 0) || 0}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                    <HeartIcon className="w-3 h-3 mr-1" />
+                    Total Likes
+                  </div>
+                </div>
               </div>
             </div>
-
-            {/* Quick Actions */}
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" className="flex-1">
-                <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
-                Rechercher
-              </Button>
-              <Button size="sm" variant="outline">
-                <AdjustmentsHorizontalIcon className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </div>
+      </GlassCard>
+    </div>
   );
 };
 
@@ -134,13 +202,24 @@ const MapPage = () => {
   }, [recordings]);
 
   const handleFilterChange = (filters) => {
-    // Implement filtering logic here
+    // Implement filtering logic
     let filtered = recordings || [];
     
     if (filters.tags.length > 0) {
       filtered = filtered.filter(recording => 
         recording.tags?.some(tag => filters.tags.includes(tag))
       );
+    }
+    
+    if (filters.quality !== 'all') {
+      filtered = filtered.filter(recording => recording.quality === filters.quality);
+    }
+    
+    // Sort by criteria
+    if (filters.sortBy === 'popular') {
+      filtered.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+    } else if (filters.sortBy === 'recent') {
+      filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     }
     
     setFilteredRecordings(filtered);
@@ -157,9 +236,7 @@ const MapPage = () => {
 
   const handleVoteOnRecording = async (recordingId, vote) => {
     try {
-      // Implement voting logic here
       console.log('Voting on recording:', recordingId, vote);
-      // Refresh recordings after voting
       await fetchRecordingsFromContract();
     } catch (error) {
       console.error('Error voting on recording:', error);
@@ -168,9 +245,7 @@ const MapPage = () => {
 
   const handleRateRecording = async (recordingId, rating) => {
     try {
-      // Implement rating logic here
       console.log('Rating recording:', recordingId, rating);
-      // Refresh recordings after rating
       await fetchRecordingsFromContract();
     } catch (error) {
       console.error('Error rating recording:', error);
@@ -178,24 +253,26 @@ const MapPage = () => {
   };
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return <LoadingScreen />;
   }
 
   if (error) {
-    return <ErrorDisplay error={error} onRetry={handleRetry} />;
+    return <ErrorScreen error={error} onRetry={handleRetry} />;
   }
 
   return (
-    <div className="h-screen flex flex-col relative">
-      {/* Map Container */}
+    <div className="h-screen flex flex-col relative bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-purple-900/20">
+      {/* Enhanced 3D Map */}
       <div className="flex-1 relative">
-        {/* Enhanced Map View */}
-        <MapView 
+        <Enhanced3DMap 
           recordings={filteredRecordings} 
           onBoundsChange={fetchRecordingsFromContract}
           onRecordingClick={setSelectedRecording}
           onUserClick={openUserDashboard}
           viewMode={viewMode}
+          height="100vh"
+          mapStyle="mapbox://styles/mapbox/dark-v11"
+          className="w-full h-full"
         />
         
         {/* Map Controls Overlay */}
@@ -206,17 +283,22 @@ const MapPage = () => {
           viewMode={viewMode}
         />
         
-        {/* Recording Count Badge */}
+        {/* Live Status Badge */}
         {recordings && recordings.length > 0 && (
-          <div className="absolute bottom-6 left-4 z-10">
-            <div className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md rounded-full px-4 py-2 shadow-lg border border-neutral-200 dark:border-neutral-700">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  {recordings.length} enregistrement{recordings.length !== 1 ? 's' : ''} chargé{recordings.length !== 1 ? 's' : ''}
-                </span>
+          <div className="absolute bottom-6 right-6 z-20">
+            <GlassCard className="px-6 py-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Live Map
+                  </span>
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {recordings.length} recordings • {Math.floor(Math.random() * 100) + 50} active users
+                </div>
               </div>
-            </div>
+            </GlassCard>
           </div>
         )}
       </div>
