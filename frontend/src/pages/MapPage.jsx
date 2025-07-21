@@ -6,10 +6,19 @@ import {
   ChevronDownIcon, 
   MagnifyingGlassIcon, 
   AdjustmentsHorizontalIcon, 
-  PlusIcon 
+  PlusIcon,
+  ChartBarIcon,
+  BoltIcon,
+  UserIcon
 } from '@heroicons/react/24/outline';
 import MapView from '../components/MapView';
+import RecordingDetailsModal from '../components/RecordingDetailsModal';
+import BatchOperationsPanel from '../components/BatchOperationsPanel';
+import UserDashboard from '../components/UserDashboard';
+import SystemStatsDashboard from '../components/SystemStatsDashboard';
 import { useRecordings } from '../hooks/useRecordings';
+import { useWeb3 } from '../hooks/useWeb3';
+import { web3Service } from '../utils/web3';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { cn } from '../utils/cn';
@@ -156,9 +165,12 @@ const MapPage = () => {
     <div className="h-screen flex flex-col relative">
       {/* Map Container */}
       <div className="flex-1 relative">
+        {/* Enhanced Map View */}
         <MapView 
           recordings={filteredRecordings} 
           onBoundsChange={fetchRecordingsFromContract}
+          onRecordingClick={setSelectedRecording}
+          onUserClick={openUserDashboard}
           viewMode={viewMode}
         />
         
@@ -170,16 +182,17 @@ const MapPage = () => {
           viewMode={viewMode}
         />
         
-        {/* Floating Action Button for Upload */}
-        <div className="absolute bottom-6 right-6 z-10">
-          <Button 
-            size="lg" 
-            className="h-14 w-14 rounded-full shadow-lg group"
-            onClick={() => navigate('/upload')}
-          >
-            <PlusIcon className="h-6 w-6 group-hover:scale-110 transition-transform" />
-          </Button>
-        </div>
+  const applyFilters = () => {
+    let filtered = recordings || [];
+    
+    if (filters.tags.length > 0) {
+      filtered = filtered.filter(recording => 
+        recording.tags?.some(tag => filters.tags.includes(tag))
+      );
+    }
+    
+    setFilteredRecordings(filtered);
+  };
         
         {/* Recording Count Badge */}
         {recordings && recordings.length > 0 && (
@@ -195,6 +208,42 @@ const MapPage = () => {
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      {selectedRecording && (
+        <RecordingDetailsModal
+          recording={selectedRecording}
+          isOpen={!!selectedRecording}
+          onClose={() => setSelectedRecording(null)}
+          onVote={handleVoteOnRecording}
+          onRate={handleRateRecording}
+        />
+      )}
+
+      {showBatchPanel && (
+        <BatchOperationsPanel
+          recordings={filteredRecordings}
+          onClose={() => setShowBatchPanel(false)}
+          onOperationComplete={fetchRecordingsFromContract}
+        />
+      )}
+
+      {showUserDashboard && (
+        <UserDashboard
+          userAddress={selectedUserAddress}
+          onClose={() => {
+            setShowUserDashboard(false);
+            setSelectedUserAddress(null);
+          }}
+        />
+      )}
+
+      {showSystemStats && (
+        <SystemStatsDashboard
+          isOpen={showSystemStats}
+          onClose={() => setShowSystemStats(false)}
+        />
+      )}
     </div>
   );
 };
