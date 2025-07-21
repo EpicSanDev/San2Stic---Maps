@@ -1,11 +1,30 @@
 const { ethers } = require('ethers');
 const User = require('../models/user');
 const Recording = require('../models/recording');
-const San2SticMapMainABI = require('../../contracts/out/San2SticMapMain.sol/San2SticMapMain.json').abi;
-const San2SticMapABI = require('../../contracts/out/San2SticMap.sol/San2SticMap.json').abi;
-const RecordingManagerABI = require('../../contracts/out/RecordingManager.sol/RecordingManager.json').abi;
-const LicenseManagerABI = require('../../contracts/out/LicenseManager.sol/LicenseManager.json').abi;
-const VotingSystemABI = require('../../contracts/out/VotingSystem.sol/VotingSystem.json').abi;
+
+// Mock ABIs for testing when contract artifacts are not available
+const mockABI = [
+  "function isUserRegistered(address) external view returns (bool)",
+  "function getUser(address) external view returns (tuple(uint256 id, string username, uint256 reputation, uint256 totalRecordings, uint256 totalVotes))",
+  "function getRecording(uint256) external view returns (tuple(int256 latitude, int256 longitude, string ipfsHash), tuple(string title, string description, string[] tags, uint256 duration, uint8 quality, string equipment, uint8 license, uint8 status), tuple(uint256 upvotes, uint256 downvotes, uint256 totalRating, uint256 ratingCount))",
+  "function getRecordingsByLocation(int256, int256, int256, int256, uint256, uint256) external view returns (uint256[])",
+  "function userReputation(address) external view returns (uint256)"
+];
+
+let San2SticMapMainABI, San2SticMapABI, RecordingManagerABI, LicenseManagerABI, VotingSystemABI;
+
+// Try to load contract ABIs, fall back to mock if not available
+try {
+  San2SticMapMainABI = require('../../contracts/out/San2SticMapMain.sol/San2SticMapMain.json').abi;
+  San2SticMapABI = require('../../contracts/out/San2SticMap.sol/San2SticMap.json').abi;
+  RecordingManagerABI = require('../../contracts/out/RecordingManager.sol/RecordingManager.json').abi;
+  LicenseManagerABI = require('../../contracts/out/LicenseManager.sol/LicenseManager.json').abi;
+  VotingSystemABI = require('../../contracts/out/VotingSystem.sol/VotingSystem.json').abi;
+  console.log('Contract ABIs loaded successfully');
+} catch (error) {
+  console.warn('Contract artifacts not found, using mock ABIs for testing');
+  San2SticMapMainABI = San2SticMapABI = RecordingManagerABI = LicenseManagerABI = VotingSystemABI = mockABI;
+}
 
 class BlockchainService {
   constructor() {
