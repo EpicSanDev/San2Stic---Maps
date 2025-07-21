@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   UserIcon,
   StarIcon,
   MapPinIcon,
   ChartBarIcon,
   TrophyIcon,
-  ClockIcon,
   HandThumbUpIcon,
   EyeIcon,
   CogIcon,
@@ -33,13 +32,7 @@ const UserDashboard = ({ userAddress, onClose }) => {
   const [selectedTab, setSelectedTab] = useState('overview');
   const { address } = useWeb3();
 
-  useEffect(() => {
-    if (userAddress) {
-      fetchUserDashboard();
-    }
-  }, [userAddress]);
-
-  const fetchUserDashboard = async () => {
+  const fetchUserDashboard = useCallback(async () => {
     try {
       setLoading(true);
       if (web3Service.isConnected()) {
@@ -52,7 +45,13 @@ const UserDashboard = ({ userAddress, onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userAddress]);
+
+  useEffect(() => {
+    if (userAddress) {
+      fetchUserDashboard();
+    }
+  }, [userAddress, fetchUserDashboard]);
 
   if (!userAddress) return null;
 
