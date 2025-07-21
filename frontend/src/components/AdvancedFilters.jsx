@@ -155,9 +155,9 @@ const AdvancedFilters = ({ onFiltersChange, recordings }) => {
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Any Reputation</option>
-                <option value="high">High Reputation (>1000)</option>
+                <option value="high">High Reputation (&gt;1000)</option>
                 <option value="medium">Medium Reputation (100-1000)</option>
-                <option value="new">New Users (<100)</option>
+                <option value="new">New Users (&lt;100)</option>
               </select>
             </div>
 
@@ -232,7 +232,7 @@ const AdvancedFilters = ({ onFiltersChange, recordings }) => {
               <option value="lossless">Lossless (FLAC, WAV)</option>
               <option value="high">High Quality (320kbps+)</option>
               <option value="standard">Standard (128-320kbps)</option>
-              <option value="low">Low Quality (<128kbps)</option>
+              <option value="low">Low Quality (&lt;128kbps)</option>
             </select>
           </div>
 
