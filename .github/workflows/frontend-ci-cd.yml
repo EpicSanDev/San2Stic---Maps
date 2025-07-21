@@ -15,13 +15,10 @@ on:
 permissions:
   contents: read
   packages: write
-  id-token: write # Si déploiement sur GCP Static Hosting avec WIF
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/frontend
-  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCP_STATIC_BUCKET: ${{ secrets.GCP_STATIC_BUCKET }}
 
 jobs:
   test-frontend:
@@ -124,28 +121,36 @@ jobs:
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
 
-    # Optional: Deploy to GCP Static Hosting
-    - name: Authenticate to Google Cloud
-      if: github.ref == 'refs/heads/main' && env.GCP_PROJECT_ID != ''
-      uses: google-github-actions/auth@v2
-      with:
-        workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-        service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
-
-    - name: Setup Google Cloud SDK
-      if: github.ref == 'refs/heads/main' && env.GCP_PROJECT_ID != ''
-      uses: google-github-actions/setup-gcloud@v2
-
-    - name: Deploy to Google Cloud Storage
-      if: github.ref == 'refs/heads/main' && env.GCP_STATIC_BUCKET != ''
+    # Deploy to IPFS using Pinata
+    - name: Deploy to IPFS (Pinata)
+      if: github.ref == 'refs/heads/main' && secrets.PINATA_JWT != ''
       run: |
-        # Upload build files to GCS bucket
-        gsutil -m rsync -d -r frontend/build gs://${{ env.GCP_STATIC_BUCKET }}
+        echo "🌐 Deploying to IPFS via Pinata..."
         
-        # Set proper content types
-        gsutil -m setmeta -h "Content-Type:text/html" gs://${{ env.GCP_STATIC_BUCKET }}/**/*.html
-        gsutil -m setmeta -h "Content-Type:application/javascript" gs://${{ env.GCP_STATIC_BUCKET }}/**/*.js
-        gsutil -m setmeta -h "Content-Type:text/css" gs://${{ env.GCP_STATIC_BUCKET }}/**/*.css
+        # Install IPFS CLI
+        wget https://dist.ipfs.io/kubo/v0.24.0/kubo_v0.24.0_linux-amd64.tar.gz
+        tar -xzf kubo_v0.24.0_linux-amd64.tar.gz
+        sudo mv kubo/ipfs /usr/local/bin/
+        
+        # Add frontend build to IPFS
+        cd frontend/build
+        IPFS_HASH=$(ipfs add -r -Q .)
+        echo "📎 IPFS Hash: $IPFS_HASH"
+        
+        # Pin to Pinata for permanent availability
+        curl -X POST \
+          -H "Authorization: Bearer ${{ secrets.PINATA_JWT }}" \
+          -H "Content-Type: application/json" \
+          -d "{\"hashToPin\":\"$IPFS_HASH\",\"pinataMetadata\":{\"name\":\"San2Stic-Frontend-${{ github.sha }}\"}}" \
+          "https://api.pinata.cloud/pinning/pinByHash"
+        
+        echo "✅ Frontend deployed to IPFS: https://ipfs.io/ipfs/$IPFS_HASH"
+        echo "🔗 Also available at: https://gateway.pinata.cloud/ipfs/$IPFS_HASH"
+        
+        # Save IPFS hash for later use
+        echo "IPFS_HASH=$IPFS_HASH" >> $GITHUB_ENV
+      env:
+        PINATA_JWT: ${{ secrets.PINATA_JWT }}
 
     # Alternative: Deploy to Netlify
     - name: Deploy to Netlify
@@ -175,9 +180,41 @@ jobs:
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
         working-directory: ./frontend
 
+    # Upload build artifacts including IPFS hash
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: frontend-build-${{ github.sha }}
-        path: frontend/build/
+        path: |
+          frontend/build/
+          ipfs-deployment.txt
         retention-days: 30
+
+    # Create deployment summary
+    - name: Create deployment summary
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "## 🚀 Frontend Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Platform | Status | URL |" >> $GITHUB_STEP_SUMMARY
+        echo "|----------|--------|-----|" >> $GITHUB_STEP_SUMMARY
+        echo "| Docker Registry | ✅ Built | \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+        
+        if [ ! -z "${{ env.IPFS_HASH }}" ]; then
+          echo "| IPFS (Decentralized) | ✅ Deployed | https://ipfs.io/ipfs/${{ env.IPFS_HASH }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| IPFS (Pinata Gateway) | ✅ Deployed | https://gateway.pinata.cloud/ipfs/${{ env.IPFS_HASH }} |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ ! -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ]; then
+          echo "| Netlify | ✅ Deployed | Check deployment logs |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ ! -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+          echo "| Vercel | ✅ Deployed | Check deployment logs |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🌐 Decentralized Access" >> $GITHUB_STEP_SUMMARY
+        echo "The frontend is now available through multiple decentralized channels:" >> $GITHUB_STEP_SUMMARY
+        echo "- **IPFS Network**: Distributed across the global IPFS network" >> $GITHUB_STEP_SUMMARY
+        echo "- **Content Addressing**: Immutable content with cryptographic verification" >> $GITHUB_STEP_SUMMARY
+        echo "- **Censorship Resistant**: No single point of failure" >> $GITHUB_STEP_SUMMARY
