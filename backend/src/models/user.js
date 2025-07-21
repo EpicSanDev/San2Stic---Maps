@@ -13,6 +13,12 @@ const User = sequelize.define('User', {
   reputation: { type: DataTypes.INTEGER, defaultValue: 100 },
   totalRecordings: { type: DataTypes.INTEGER, defaultValue: 0 },
   totalVotes: { type: DataTypes.INTEGER, defaultValue: 0 },
+  followersCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+  followingCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+  totalLikes: { type: DataTypes.INTEGER, defaultValue: 0 },
+  totalBookmarks: { type: DataTypes.INTEGER, defaultValue: 0 },
+  profileImageUrl: { type: DataTypes.STRING, allowNull: true },
+  bio: { type: DataTypes.TEXT, allowNull: true },
   isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
   registrationTimestamp: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   syncedWithBlockchain: { type: DataTypes.BOOLEAN, defaultValue: false }

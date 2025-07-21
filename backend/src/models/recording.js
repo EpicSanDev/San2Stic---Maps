@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
-const User = require('./user');
 
 const Recording = sequelize.define('Recording', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -40,11 +39,14 @@ const Recording = sequelize.define('Recording', {
   downvotes: { type: DataTypes.INTEGER, defaultValue: 0 },
   totalRating: { type: DataTypes.INTEGER, defaultValue: 0 },
   ratingCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+  likes: { type: DataTypes.INTEGER, defaultValue: 0 },
+  bookmarks: { type: DataTypes.INTEGER, defaultValue: 0 },
+  shares: { type: DataTypes.INTEGER, defaultValue: 0 },
+  viewCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+  genre: { type: DataTypes.STRING(50), allowNull: true },
+  audioQuality: { type: DataTypes.STRING(50), allowNull: true }, // bitrate, format info
   isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
   syncedWithBlockchain: { type: DataTypes.BOOLEAN, defaultValue: false }
 });
-
-Recording.belongsTo(User);
-User.hasMany(Recording);
 
 module.exports = Recording;

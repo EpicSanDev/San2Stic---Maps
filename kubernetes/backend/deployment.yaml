@@ -1,0 +1,169 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: san2stic
+  labels:
+    name: san2stic
+    app: san2stic-platform
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: san2stic
+data:
+  NODE_ENV: "production"
+  PORT: "4000"
+  # Database configuration will be handled via secrets
+  LOG_LEVEL: "info"
+  CORS_ORIGIN: "*"
+  # GCS and IPFS configs can be added here for non-sensitive data
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-secrets
+  namespace: san2stic
+type: Opaque
+# Note: These values should be base64 encoded in actual deployment
+# Use: echo -n "your-secret" | base64
+stringData:
+  JWT_SECRET: "your-jwt-secret-change-in-production"
+  DATABASE_URL: "postgresql://user:password@postgresql.san2stic.svc.cluster.local:5432/san2stic"
+  GOOGLE_APPLICATION_CREDENTIALS_JSON: |
+    {
+      "type": "service_account",
+      "project_id": "your-gcp-project",
+      "private_key_id": "key-id",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n",
+      "client_email": "service-account@your-gcp-project.iam.gserviceaccount.com",
+      "client_id": "client-id",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token"
+    }
+  GOOGLE_CLOUD_STORAGE_BUCKET: "your-gcs-bucket-name"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: san2stic
+  labels:
+    app: backend
+    component: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        component: api
+    spec:
+      containers:
+      - name: backend
+        image: ghcr.io/epicsandev/san2stic---maps/backend:latest
+        ports:
+        - containerPort: 4000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: backend-config
+        env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: JWT_SECRET
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: DATABASE_URL
+        - name: GOOGLE_CLOUD_STORAGE_BUCKET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: GOOGLE_CLOUD_STORAGE_BUCKET
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/secrets/gcp/credentials.json"
+        volumeMounts:
+        - name: gcp-credentials
+          mountPath: /secrets/gcp
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: gcp-credentials
+        secret:
+          secretName: backend-secrets
+          items:
+          - key: GOOGLE_APPLICATION_CREDENTIALS_JSON
+            path: credentials.json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: san2stic
+  labels:
+    app: backend
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 80
+    targetPort: 4000
+    name: http
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-ingress
+  namespace: san2stic
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "san2stic-backend-ip"
+    networking.gke.io/managed-certificates: "san2stic-backend-ssl-cert"
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  rules:
+  - host: api.san2stic.com  # Change to your domain
+    http:
+      paths:
+      - path: /*
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 80
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: san2stic-backend-ssl-cert
+  namespace: san2stic
+spec:
+  domains:
+    - api.san2stic.com  # Change to your domain

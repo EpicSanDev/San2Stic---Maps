@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-pvc
+spec:
+  resources:
+    requests:
+      storage: 100Gi  # Larger storage for production
+  storageClassName: ssd-retain  # SSD storage with retain policy
