@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Reference to base
+bases:
+  - ../../
+
+# Environment-specific name suffix
+nameSuffix: -staging
+
+# Environment-specific images
+images:
+  - name: ghcr.io/epicsandev/san2stic---maps/backend
+    newTag: develop
+  - name: ghcr.io/epicsandev/san2stic---maps/icecast
+    newTag: develop
+
+# Patches for staging environment
+patchesStrategicMerge:
+  - backend-staging-patch.yaml
+  - postgresql-staging-patch.yaml
+
+# Environment-specific labels
+commonLabels:
+  environment: staging
