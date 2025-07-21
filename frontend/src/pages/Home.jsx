@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { ArrowRightIcon, PlayCircleIcon, MicrophoneIcon, MapPinIcon, RadioIcon, UsersIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { cn } from '../utils/cn';
@@ -57,9 +58,7 @@ const Home = () => {
             >
               <Link to="/map">
                 Explorer la carte
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
+                <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
             <Button 
@@ -69,9 +68,7 @@ const Home = () => {
               className="group"
             >
               <Link to="/radio">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 group-hover:animate-pulse" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                </svg>
+                <PlayCircleIcon className="h-5 w-5 mr-2 group-hover:animate-pulse" />
                 Écouter la radio
               </Link>
             </Button>
@@ -82,9 +79,7 @@ const Home = () => {
             <div className="aspect-video w-full bg-neutral-200 dark:bg-neutral-800 rounded-2xl flex items-center justify-center">
               <div className="text-center p-8">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-primary-100 to-secondary-100 flex items-center justify-center text-primary-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                  </svg>
+                  <MicrophoneIcon className="h-8 w-8" />
                 </div>
                 <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-1">Expérience audio immersive</h3>
                 <p className="text-neutral-600 dark:text-neutral-400 text-sm">Découvrez des paysages sonores uniques à travers le monde</p>
@@ -111,31 +106,18 @@ const Home = () => {
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <FeatureCard
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            }
+            icon={<MapPinIcon className="h-6 w-6" />}
             title="Carte interactive"
             description="Naviguez sur une carte interactive et découvrez des enregistrements géolocalisés."
           />
           <FeatureCard
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-              </svg>
-            }
+            icon={<RadioIcon className="h-6 w-6" />}
             title="Radio en direct"
             description="Écoutez notre sélection musicale en continu, 24h/24."
             className="md:translate-y-6"
           />
           <FeatureCard
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            }
+            icon={<UsersIcon className="h-6 w-6" />}
             title="Communauté"
             description="Rejoignez une communauté de passionnés du son et partagez vos créations."
             className="lg:translate-y-12"
@@ -159,9 +141,7 @@ const Home = () => {
             <Button asChild size="lg" variant="gradient" className="group">
               <Link to="/signup">
                 Créer un compte
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
+                <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">

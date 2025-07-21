@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useWeb3 } from '../hooks/useWeb3';
 import { ethers } from 'ethers';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { cn } from '../utils/cn';
+import { ChevronRightIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const WalletOption = ({ icon, name, description, onClick, disabled, isLoading }) => (
   <Button
@@ -29,18 +29,14 @@ const WalletOption = ({ icon, name, description, onClick, disabled, isLoading })
         {description}
       </div>
     </div>
-    <svg className="h-5 w-5 text-neutral-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-    </svg>
+    <ChevronRightIcon className="h-5 w-5 text-neutral-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all duration-200" />
   </Button>
 );
 
 const SecurityFeature = ({ icon, title, description }) => (
   <div className="flex items-start space-x-3">
     <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-      <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-      </svg>
+      <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
     </div>
     <div>
       <div className="font-medium text-neutral-900 dark:text-white text-sm">{title}</div>
@@ -110,14 +106,14 @@ const Login = () => {
           {/* Left Column - Branding & Info */}
           <div className="text-center lg:text-left">
             <div className="mb-8">
-              <Link to="/" className="inline-flex items-center space-x-3 group">
+              <button type="button" className="inline-flex items-center space-x-3 group">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                   <span className="text-white font-bold text-lg">S2S</span>
                 </div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
                   San2Stic
                 </span>
-              </Link>
+              </button>
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-neutral-900 dark:text-white mb-6">
@@ -167,9 +163,7 @@ const Login = () => {
                 {error && (
                   <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                     <div className="flex items-start space-x-3">
-                      <svg className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
+                      <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                       <div>
                         <h4 className="font-medium text-red-800 dark:text-red-200">Erreur de connexion</h4>
                         <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
@@ -222,20 +216,17 @@ const Login = () => {
                 <div className="pt-6 border-t border-neutral-200 dark:border-neutral-700">
                   <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
                     Pas encore de compte ?{' '}
-                    <Link 
-                      to="/signup" 
-                      className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
-                    >
+                    <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
                       Créer un compte
-                    </Link>
+                    </button>
                   </p>
                 </div>
                 
                 <div className="text-xs text-center text-neutral-500 dark:text-neutral-400">
                   En vous connectant, vous acceptez nos{' '}
-                  <a href="#" className="underline hover:text-neutral-700 dark:hover:text-neutral-300">conditions d'utilisation</a>
+                  <button type="button" className="underline hover:text-neutral-700 dark:hover:text-neutral-300">conditions d'utilisation</button>
                   {' '}et notre{' '}
-                  <a href="#" className="underline hover:text-neutral-700 dark:hover:text-neutral-300">politique de confidentialité</a>.
+                  <button type="button" className="underline hover:text-neutral-700 dark:hover:text-neutral-300">politique de confidentialité</button>.
                 </div>
               </CardContent>
             </Card>

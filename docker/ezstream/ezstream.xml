@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ezstream>
-    <url>http://icecast:8000/stream</url>
-    <sourcepassword>hackme</sourcepassword>
-    <format>MP3</format>
-    <filename>/var/log/ezstream/silence.mp3</filename>
-    <stream_once>0</stream_once>
-    <reconnect_attempts>10</reconnect_attempts>
-    <reconnect>1</reconnect>
-    <shuffle>0</shuffle>
-    <metadata>
-        <program>San2Stic Radio</program>
-        <title>Paysages Sonores</title>
-        <description>Radio collaborative</description>
-        <url>https://san2stic.com</url>
-        <genre>Field Recording</genre>
-    </metadata>
+    <stream>
+        <url>http://icecast:8000/stream</url>
+        <sourcepassword>secure_source_password</sourcepassword>
+        <format>MP3</format>
+        <playlist>/var/log/ezstream/playlist.m3u</playlist>
+        <stream_once>0</stream_once>
+        <reconnect_attempts>10</reconnect_attempts>
+        <reconnect>1</reconnect>
+        <shuffle>1</shuffle>
+        <metadata>
+            <program>San2Stic Radio</program>
+            <title>Paysages Sonores</title>
+            <description>Radio collaborative</description>
+            <url>https://san2stic.com</url>
+            <genre>Field Recording</genre>
+        </metadata>
+    </stream>
 </ezstream>

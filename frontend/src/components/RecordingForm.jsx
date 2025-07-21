@@ -3,16 +3,19 @@ import { useRecordings } from '../hooks/useRecordings';
 import { useWeb3 } from '../hooks/useWeb3';
 import {
   CloudArrowUpIcon,
-  MicrophoneIcon,
   MapPinIcon,
   TagIcon,
-  CogIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   XMarkIcon,
   PlayIcon,
   PauseIcon,
-  SpeakerWaveIcon
+  SpeakerWaveIcon,
+  InformationCircleIcon,
+  UserIcon,
+  ChatBubbleLeftEllipsisIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import {
   DocumentIcon,
@@ -57,11 +60,9 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
   const [audioPreview, setAudioPreview] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [useCurrentLocation, setUseCurrentLocation] = useState(false);
-  const [locationLoading, setLocationLoading] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress] = useState(0);
   
   const fileInputRef = useRef(null);
   const audioRef = useRef(null);
@@ -90,6 +91,8 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
           errors.location = 'La localisation est requise';
         }
         break;
+      default:
+        break;
     }
     
     setValidationErrors(errors);
@@ -113,7 +116,7 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
     }
   };
 
-  const handleFileSelect = (file) => {
+  const handleFileSelect = useCallback((file) => {
     const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/flac'];
     if (!allowedTypes.includes(file.type)) {
       setError('Veuillez sélectionner un fichier audio valide (MP3, WAV, OGG, MP4, FLAC)');
@@ -139,7 +142,7 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
         return newErrors;
       });
     }
-  };
+  }, [validationErrors]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -167,7 +170,7 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
     if (files.length > 0) {
       handleFileSelect(files[0]);
     }
-  }, []);
+  }, [handleFileSelect]);
 
   // Audio preview handlers
   const toggleAudioPreview = () => {
@@ -187,46 +190,29 @@ const RecordingForm = ({ onSuccess, onCancel }) => {
   };
 
   // Step navigation
-  const nextStep = () => {
+
+  const goToStep = (step) => {
+    // Allow navigation only to completed steps or the next one
+    if (step < currentStep || validateStep(currentStep)) {
+      setCurrentStep(step);
+    }
+  };
+
+  const handleNextStep = () => {
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, steps.length));
     }
   };
 
-  const prevStep = () => {
+  const handlePrevStep = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const goToStep = (step) => {
-    setCurrentStep(step);
+  const canProceedToNextStep = () => {
+    return validateStep(currentStep);
   };
 
-  const getCurrentLocation = () => {
-    setLocationLoading(true);
-    setError('');
-    
-    if (!navigator.geolocation) {
-      setError('Geolocation is not supported by this browser');
-      setLocationLoading(false);
-      return;
-    }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormData(prev => ({
-          ...prev,
-          latitude: position.coords.latitude.toString(),
-          longitude: position.coords.longitude.toString()
-        }));
-        setLocationLoading(false);
-      },
-      (error) => {
-        setError('Unable to retrieve your location: ' + error.message);
-        setLocationLoading(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

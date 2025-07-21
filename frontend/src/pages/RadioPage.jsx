@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import RadioPlayer from '../components/RadioPlayer';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { ClockIcon, HeartIcon, ShareIcon, ArrowDownTrayIcon, UsersIcon, MicrophoneIcon, MapPinIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import { cn } from '../utils/cn';
 
 const WaveAnimation = ({ isPlaying }) => (
@@ -50,9 +52,7 @@ const ProgramSchedule = () => {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
-          <svg className="h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <ClockIcon className="h-5 w-5 text-primary-600" />
           <span>Programme du jour</span>
         </CardTitle>
       </CardHeader>
@@ -113,6 +113,7 @@ const StatsCard = ({ icon, title, value, description }) => (
 );
 
 const RadioPage = () => {
+  const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(false);
   const [listeners, setListeners] = useState(42);
 
@@ -177,21 +178,15 @@ const RadioPage = () => {
                 
                 <div className="mt-8 flex justify-center space-x-4">
                   <Button variant="outline" size="sm">
-                    <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
+                    <HeartIcon className="h-4 w-4 mr-2" />
                     Favori
                   </Button>
                   <Button variant="outline" size="sm">
-                    <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                    </svg>
+                    <ShareIcon className="h-4 w-4 mr-2" />
                     Partager
                   </Button>
                   <Button variant="outline" size="sm">
-                    <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                    </svg>
+                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
                     Télécharger l'app
                   </Button>
                 </div>
@@ -201,31 +196,19 @@ const RadioPage = () => {
             {/* Stats */}
             <div className="grid md:grid-cols-3 gap-4">
               <StatsCard
-                icon={
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                }
+                icon={<UsersIcon className="h-6 w-6" />}
                 title="Auditeurs en direct"
                 value={listeners}
                 description="Connectés maintenant"
               />
               <StatsCard
-                icon={
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                }
+                icon={<MicrophoneIcon className="h-6 w-6" />}
                 title="Enregistrements"
                 value="247"
                 description="Dans notre collection"
               />
               <StatsCard
-                icon={
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                }
+                icon={<ClockIcon className="h-6 w-6" />}
                 title="Diffusion"
                 value="24/7"
                 description="Sans interruption"
@@ -243,22 +226,16 @@ const RadioPage = () => {
                 <CardTitle>Liens rapides</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start" onClick={() => window.location.href = '/map'}>
-                  <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  </svg>
+                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/map')}>
+                  <MapPinIcon className="h-4 w-4 mr-2" />
                   Explorer la carte
                 </Button>
-                <Button variant="outline" className="w-full justify-start" onClick={() => window.location.href = '/upload'}>
-                  <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                  </svg>
+                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/upload')}>
+                  <ArrowUpTrayIcon className="h-4 w-4 mr-2" />
                   Partager un son
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
-                  <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                  </svg>
+                  <ShareIcon className="h-4 w-4 mr-2" />
                   Rejoindre la communauté
                 </Button>
               </CardContent>

@@ -124,7 +124,7 @@ const RecordingPopup = ({ recording, onClose }) => {
 const MapView = ({ recordings: propRecordings, onBoundsChange, height = 'calc(100vh - 80px)' }) => {
   const { recordings: hookRecordings, isLoading, error } = useRecordings();
   const [selectedRecording, setSelectedRecording] = useState(null);
-  const [viewState, setViewState] = useState({
+  const [viewState] = useState({
     longitude: 2.3522,
     latitude: 48.8566,
     zoom: 5

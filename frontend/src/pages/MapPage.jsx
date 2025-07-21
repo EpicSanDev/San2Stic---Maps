@@ -1,4 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  ExclamationTriangleIcon, 
+  ArrowPathIcon, 
+  ChevronDownIcon, 
+  MagnifyingGlassIcon, 
+  AdjustmentsHorizontalIcon, 
+  PlusIcon 
+} from '@heroicons/react/24/outline';
 import MapView from '../components/MapView';
 import { useRecordings } from '../hooks/useRecordings';
 import { Button } from '../components/ui/Button';
@@ -20,9 +29,7 @@ const ErrorDisplay = ({ error, onRetry }) => (
   <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-br from-white to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 p-4">
     <div className="max-w-md text-center">
       <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-        <svg className="h-8 w-8 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
+        <ExclamationTriangleIcon className="h-8 w-8 text-red-600 dark:text-red-400" />
       </div>
       <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">Erreur de chargement</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-6">
@@ -30,29 +37,15 @@ const ErrorDisplay = ({ error, onRetry }) => (
       </p>
       <Button onClick={onRetry} className="group">
         Réessayer
-        <svg className="h-4 w-4 ml-2 group-hover:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0V9a8 8 0 1115.357 2m-15.357-2H15" />
-        </svg>
+        <ArrowPathIcon className="h-4 w-4 ml-2 group-hover:rotate-180 transition-transform duration-300" />
       </Button>
     </div>
   </div>
 );
 
-const MapControls = ({ recordings, onFilterChange, onViewModeChange, viewMode }) => {
+const MapControls = ({ recordings, onViewModeChange, viewMode }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [filters, setFilters] = useState({
-    tags: [],
-    dateRange: 'all',
-    license: 'all'
-  });
-
   const recordingCount = recordings?.length || 0;
-  const availableTags = [...new Set(recordings?.flatMap(r => r.tags || []) || [])];
-
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
-    onFilterChange?.(newFilters);
-  };
 
   return (
     <Card className="absolute top-4 left-4 z-10 w-80 shadow-lg border-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md">
@@ -70,14 +63,7 @@ const MapControls = ({ recordings, onFilterChange, onViewModeChange, viewMode })
             onClick={() => setIsExpanded(!isExpanded)}
             className="h-8 w-8"
           >
-            <svg 
-              className={cn("h-4 w-4 transition-transform duration-200", isExpanded && "rotate-180")} 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <ChevronDownIcon className={cn("h-5 w-5 transition-transform duration-200", isExpanded && "rotate-180")} />
           </Button>
         </div>
 
@@ -117,15 +103,11 @@ const MapControls = ({ recordings, onFilterChange, onViewModeChange, viewMode })
             {/* Quick Actions */}
             <div className="flex gap-2">
               <Button size="sm" variant="outline" className="flex-1">
-                <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
                 Rechercher
               </Button>
               <Button size="sm" variant="outline">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-                </svg>
+                <AdjustmentsHorizontalIcon className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -136,6 +118,7 @@ const MapControls = ({ recordings, onFilterChange, onViewModeChange, viewMode })
 };
 
 const MapPage = () => {
+  const navigate = useNavigate();
   const { recordings, isLoading, error, fetchRecordingsFromContract } = useRecordings();
   const [viewMode, setViewMode] = useState('markers');
   const [filteredRecordings, setFilteredRecordings] = useState([]);
@@ -192,11 +175,9 @@ const MapPage = () => {
           <Button 
             size="lg" 
             className="h-14 w-14 rounded-full shadow-lg group"
-            onClick={() => window.location.href = '/upload'}
+            onClick={() => navigate('/upload')}
           >
-            <svg className="h-6 w-6 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon className="h-6 w-6 group-hover:scale-110 transition-transform" />
           </Button>
         </div>
         

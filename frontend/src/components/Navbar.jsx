@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from './ui/Button';
 import { cn } from '../utils/cn';
@@ -34,7 +35,6 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Carte', path: '/map' },
     { name: 'Radio', path: '/radio' },
-    { name: 'Explorer', path: '/explore' },
     { name: 'Téléverser', path: '/upload' },
   ];
 
@@ -140,13 +140,9 @@ const Navbar = () => {
               aria-label="Menu"
             >
               {mobileMenuOpen ? (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <XMarkIcon className="h-6 w-6" />
               ) : (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <Bars3Icon className="h-6 w-6" />
               )}
             </Button>
           </div>

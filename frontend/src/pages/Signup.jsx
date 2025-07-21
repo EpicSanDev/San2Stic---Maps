@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useWeb3 } from '../hooks/useWeb3';
 import { ethers } from 'ethers';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { cn } from '../utils/cn';
+import { ChevronRightIcon, ExclamationTriangleIcon, MapPinIcon, ArrowUpTrayIcon, UsersIcon, RadioIcon } from '@heroicons/react/24/outline';
 
 const WalletOption = ({ icon, name, description, onClick, disabled, isLoading }) => (
   <Button
@@ -29,9 +29,7 @@ const WalletOption = ({ icon, name, description, onClick, disabled, isLoading })
         {description}
       </div>
     </div>
-    <svg className="h-5 w-5 text-neutral-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-    </svg>
+    <ChevronRightIcon className="h-5 w-5 text-neutral-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all duration-200" />
   </Button>
 );
 
@@ -39,9 +37,7 @@ const BenefitCard = ({ icon, title, description }) => (
   <div className="p-4 rounded-xl bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border border-primary-100 dark:border-primary-800">
     <div className="flex items-start space-x-3">
       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center flex-shrink-0">
-        <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          {icon}
-        </svg>
+        {icon}
       </div>
       <div>
         <div className="font-semibold text-neutral-900 dark:text-white text-sm mb-1">{title}</div>
@@ -112,14 +108,14 @@ const Signup = () => {
           {/* Left Column - Benefits & Info */}
           <div className="text-center lg:text-left">
             <div className="mb-8">
-              <Link to="/" className="inline-flex items-center space-x-3 group">
+              <button onClick={() => navigate('/')} className="inline-flex items-center space-x-3 group">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                   <span className="text-white font-bold text-lg">S2S</span>
                 </div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
                   San2Stic
                 </span>
-              </Link>
+              </button>
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-neutral-900 dark:text-white mb-6">
@@ -138,22 +134,22 @@ const Signup = () => {
               <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Pourquoi rejoindre San2Stic ?</h3>
               <div className="grid gap-4">
                 <BenefitCard
-                  icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />}
+                  icon={<MapPinIcon className="h-5 w-5 text-white" />}
                   title="Explorez le monde sonore"
                   description="Découvrez des enregistrements géolocalisés du monde entier"
                 />
                 <BenefitCard
-                  icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />}
+                  icon={<ArrowUpTrayIcon className="h-5 w-5 text-white" />}
                   title="Partagez vos créations"
                   description="Téléversez et monétisez vos propres enregistrements"
                 />
                 <BenefitCard
-                  icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />}
+                  icon={<UsersIcon className="h-5 w-5 text-white" />}
                   title="Rejoignez la communauté"
                   description="Connectez-vous avec des créateurs du monde entier"
                 />
                 <BenefitCard
-                  icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />}
+                  icon={<RadioIcon className="h-5 w-5 text-white" />}
                   title="Radio en direct"
                   description="Écoutez notre sélection 24h/24 et 7j/7"
                 />
@@ -177,9 +173,7 @@ const Signup = () => {
                 {error && (
                   <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                     <div className="flex items-start space-x-3">
-                      <svg className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
+                      <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                       <div>
                         <h4 className="font-medium text-red-800 dark:text-red-200">Erreur d'inscription</h4>
                         <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
@@ -232,20 +226,17 @@ const Signup = () => {
                 <div className="pt-6 border-t border-neutral-200 dark:border-neutral-700">
                   <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
                     Déjà un compte ?{' '}
-                    <Link 
-                      to="/login" 
-                      className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
-                    >
+                    <button type="button" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
                       Se connecter
-                    </Link>
+                    </button>
                   </p>
                 </div>
                 
                 <div className="text-xs text-center text-neutral-500 dark:text-neutral-400">
                   En créant un compte, vous acceptez nos{' '}
-                  <a href="#" className="underline hover:text-neutral-700 dark:hover:text-neutral-300">conditions d'utilisation</a>
+                  <button type="button" className="underline hover:text-neutral-700 dark:hover:text-neutral-300">conditions d'utilisation</button>
                   {' '}et notre{' '}
-                  <a href="#" className="underline hover:text-neutral-700 dark:hover:text-neutral-300">politique de confidentialité</a>.
+                  <button type="button" className="underline hover:text-neutral-700 dark:hover:text-neutral-300">politique de confidentialité</button>.
                 </div>
               </CardContent>
             </Card>

@@ -10,7 +10,14 @@ import {
   CalendarIcon,
   ChartBarIcon,
   CogIcon,
-  ShareIcon
+  ShareIcon,
+  WalletIcon,
+  BoltIcon,
+  TrophyIcon,
+  EnvelopeIcon,
+  ShieldCheckIcon,
+  LockClosedIcon,
+  MusicalNoteIcon
 } from '@heroicons/react/24/outline';
 import { 
   CheckBadgeIcon,
@@ -85,7 +92,7 @@ const Profile = () => {
                         ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
                         : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'
                     }`}>
-                      {user.role === 'admin' ? '👑 Administrateur' : '🎵 Contributeur'}
+                      {user.role === 'admin' ? <><ShieldCheckIcon className="h-4 w-4 mr-1.5" />Administrateur</> : <><MusicalNoteIcon className="h-4 w-4 mr-1.5" />Contributeur</>}
                     </span>
                     <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-300">
                       <StarIcon className="h-4 w-4 text-yellow-500" />
@@ -172,9 +179,7 @@ const Profile = () => {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                 <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl mr-3">
-                  <svg className="h-5 w-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
+                  <WalletIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 Portefeuille Blockchain
               </h2>
@@ -204,7 +209,7 @@ const Profile = () => {
                         <p className="text-xs text-gray-600 dark:text-gray-300">Authentification</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-lg font-bold text-green-700 dark:text-green-300">🔐</p>
+                        <LockClosedIcon className="h-6 w-6 text-green-700 dark:text-green-300" />
                         <p className="text-xs text-gray-600 dark:text-gray-300">Sécurisé</p>
                       </div>
                     </div>
@@ -224,15 +229,15 @@ const Profile = () => {
                     </p>
                     <div className="grid grid-cols-3 gap-3 mb-4">
                       <div className="text-center p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl">
-                        <p className="text-lg">🎵</p>
+                        <MusicalNoteIcon className="h-6 w-6 text-gray-700 dark:text-gray-200" />
                         <p className="text-xs text-gray-600 dark:text-gray-300">NFT Audio</p>
                       </div>
                       <div className="text-center p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl">
-                        <p className="text-lg">⚡</p>
+                        <BoltIcon className="h-6 w-6 text-gray-700 dark:text-gray-200" />
                         <p className="text-xs text-gray-600 dark:text-gray-300">Transactions</p>
                       </div>
                       <div className="text-center p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl">
-                        <p className="text-lg">🏆</p>
+                        <TrophyIcon className="h-6 w-6 text-gray-700 dark:text-gray-200" />
                         <p className="text-xs text-gray-600 dark:text-gray-300">Récompenses</p>
                       </div>
                     </div>
@@ -242,9 +247,7 @@ const Profile = () => {
                       onClick={connectWallet}
                       className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                     >
-                      <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
+                      <BoltIcon className="h-5 w-5 mr-2" />
                       Connecter le Wallet
                     </button>
                   </div>
@@ -303,9 +306,7 @@ const Profile = () => {
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                        <svg className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                        </svg>
+                        <EnvelopeIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <h4 className="font-semibold text-gray-900 dark:text-white">Email</h4>
                     </div>
@@ -329,9 +330,7 @@ const Profile = () => {
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                        <svg className="h-5 w-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <ShieldCheckIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
                       </div>
                       <h4 className="font-semibold text-gray-900 dark:text-white">Rôle</h4>
                     </div>

@@ -1,7 +1,8 @@
-FROM alpine:latest
+FROM debian:bullseye-slim
 
-# Install ezstream, curl, and other utilities
-RUN apk add --no-cache ezstream curl bash
+# Install ezstream, curl, ffmpeg, and other utilities
+RUN apt-get update && apt-get install -y ezstream curl bash ffmpeg --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create directories for ezstream
 RUN mkdir -p /var/log/ezstream
