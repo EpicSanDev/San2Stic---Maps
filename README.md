@@ -10,9 +10,9 @@
 | **Backend**     | Node.js + Express + Sequelize (PostgreSQL)  | API server & database management          |
 | **Blockchain**  | Solidity + Foundry (Base Network)           | Decentralized recording & license management |
 | **Authentication** | JWT + bcrypt                              | Secure user authentication                |
-| **Storage**     | Google Cloud Storage + IPFS                 | Audio file storage & distribution         |
+| **Storage**     | IPFS + Local Storage                        | Decentralized audio file storage & distribution |
 | **Streaming**   | Icecast                                      | Live radio streaming                       |
-| **Deployment** | Docker + GitHub Container Registry + CI/CD  | Automated containerized deployment         |
+| **Deployment** | Docker + IPFS + Tor Hidden Services         | Decentralized containerized deployment     |
 
 ## 📁 Project Structure
 
@@ -107,28 +107,34 @@ forge test
 forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --verify
 ```
 
-### 4. Production Deployment with CI/CD
+### 4. Decentralized Deployment
 
-**Using Docker with GitHub Container Registry:**
+**Quick Local Deployment:**
 
 ```bash
-# Quick start with production images
-export GITHUB_REPOSITORY=your-username/san2stic-maps
-./scripts/start-prod.sh
+# Clone and setup
+git clone https://github.com/EpicSanDev/San2Stic---Maps.git
+cd San2Stic---Maps
+cp .env.example .env
+# Edit .env with your configuration
 
-# Or manually
-cp .env.prod.example .env.prod
-# Edit .env.prod with your values
-docker-compose -f docker-compose.prod.yml up -d
+# Deploy with decentralized services (IPFS + Tor)
+docker compose up -d
+
+# Check your Tor hidden service address
+docker compose logs tor | grep "onion"
+
+# Access IPFS gateway
+open http://localhost:8080
 ```
 
-**CI/CD Pipeline:**
-- Automatic builds on push to `main`/`develop`
-- Multi-architecture support (AMD64/ARM64)
-- Images stored in GitHub Container Registry
-- Automated deployment workflows
+**Decentralized Features:**
+- **IPFS Storage**: All files stored on decentralized IPFS network
+- **Tor Hidden Service**: Anonymous .onion access for censorship resistance  
+- **Local Infrastructure**: No reliance on cloud providers
+- **Self-hosted**: Complete control over your data and services
 
-See [CI/CD Documentation](docs/CI-CD.md) for detailed setup instructions.
+See [DECENTRALIZED_DEPLOYMENT.md](DECENTRALIZED_DEPLOYMENT.md) for comprehensive deployment guide.
 
 ### 5. Development with Docker
 
