@@ -27,19 +27,19 @@ jobs:
             dockerfile: ./infra/Dockerfile.backend
           - name: frontend
             context: ./frontend
-            dockerfile: Dockerfile
+            dockerfile: ./frontend/Dockerfile
           - name: nginx
             context: .
             dockerfile: ./docker/nginx/Dockerfile
           - name: tor
             context: ./docker/tor
-            dockerfile: Dockerfile
+            dockerfile: ./docker/tor/Dockerfile
           - name: ipfs
             context: ./docker/ipfs
-            dockerfile: Dockerfile
+            dockerfile: ./docker/ipfs/Dockerfile
           - name: icecast
             context: ./infra
-            dockerfile: Dockerfile.icecast
+            dockerfile: ./infra/Dockerfile.icecast
 
     steps:
     - name: Checkout repository
