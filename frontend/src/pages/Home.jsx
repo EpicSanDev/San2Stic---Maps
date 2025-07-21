@@ -1,159 +1,350 @@
-import React, { useEffect } from 'react';
-import { ArrowRightIcon, PlayCircleIcon, MicrophoneIcon, MapPinIcon, RadioIcon, UsersIcon } from '@heroicons/react/24/outline';
+import React, { useEffect, useState } from 'react';
+import { 
+  ArrowRightIcon, 
+  PlayCircleIcon, 
+  MicrophoneIcon, 
+  MapPinIcon, 
+  RadioIcon, 
+  UsersIcon,
+  SpeakerWaveIcon,
+  StarIcon,
+  GlobeAltIcon,
+  ShieldCheckIcon,
+  LightBulbIcon,
+  HeartIcon
+} from '@heroicons/react/24/outline';
+import { 
+  SpeakerWaveIcon as SpeakerWaveIconSolid,
+  StarIcon as StarIconSolid 
+} from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import { GlassCard } from '../components/ui/GlassCard';
+import { AudioPlayer } from '../components/ui/AudioPlayer';
 import { cn } from '../utils/cn';
 
-const FeatureCard = ({ icon, title, description, className }) => (
-  <div className={cn("p-6 rounded-2xl bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm border border-neutral-200 dark:border-neutral-800 transition-all hover:shadow-md hover:border-primary-200 dark:hover:border-primary-900/50", className)}>
-    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white mb-4">
-      {icon}
+const FeatureCard = ({ icon, title, description, delay = 0, className }) => (
+  <GlassCard 
+    className={cn(
+      "p-8 group hover:scale-105 transition-all duration-500 cursor-pointer border-0 bg-white/60 dark:bg-gray-900/60",
+      className
+    )}
+    style={{ animationDelay: `${delay}ms` }}
+  >
+    <div className="relative">
+      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 via-electric-500 to-frequency-500 flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+        {icon}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary-500 to-electric-500 opacity-0 group-hover:opacity-20 transition-opacity blur-xl" />
+      </div>
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+        {title}
+      </h3>
+      <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+        {description}
+      </p>
     </div>
-    <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">{title}</h3>
-    <p className="text-neutral-600 dark:text-neutral-400">{description}</p>
-  </div>
+  </GlassCard>
+);
+
+const StatCard = ({ number, label, icon, delay = 0 }) => (
+  <GlassCard 
+    className="p-6 text-center group cursor-pointer bg-white/40 dark:bg-gray-900/40 border-0"
+    style={{ animationDelay: `${delay}ms` }}
+  >
+    <div className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-electric-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform">
+      {number}
+    </div>
+    <div className="flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-400">
+      {icon}
+      <span className="text-sm font-medium">{label}</span>
+    </div>
+  </GlassCard>
 );
 
 const Home = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+
   useEffect(() => {
-    // Ajouter la classe au body pour le dégradé de fond
-    document.body.classList.add('bg-gradient-to-br', 'from-white', 'to-neutral-100', 'dark:from-neutral-900', 'dark:to-neutral-800');
+    setIsVisible(true);
+    
+    // Add body classes for gradient background
+    document.body.classList.add(
+      'bg-gradient-to-br', 
+      'from-gray-50', 
+      'via-blue-50', 
+      'to-purple-50', 
+      'dark:from-gray-900', 
+      'dark:via-gray-900', 
+      'dark:to-purple-900/20'
+    );
     
     return () => {
-      // Nettoyer les classes au démontage
-      document.body.classList.remove('bg-gradient-to-br', 'from-white', 'to-neutral-100', 'dark:from-neutral-900', 'dark:to-neutral-800');
+      document.body.classList.remove(
+        'bg-gradient-to-br', 
+        'from-gray-50', 
+        'via-blue-50', 
+        'to-purple-50', 
+        'dark:from-gray-900', 
+        'dark:via-gray-900', 
+        'dark:to-purple-900/20'
+      );
     };
   }, []);
 
+  const features = [
+    {
+      icon: <MapPinIcon className="w-8 h-8" />,
+      title: "Interactive 3D Map",
+      description: "Explore field recordings in stunning 3D environments with spatial audio positioning and real-time visualizations."
+    },
+    {
+      icon: <SpeakerWaveIcon className="w-8 h-8" />,
+      title: "Immersive Audio",
+      description: "Experience high-quality spatial audio with advanced visualizations and real-time frequency analysis."
+    },
+    {
+      icon: <GlobeAltIcon className="w-8 h-8" />,
+      title: "Decentralized Network",
+      description: "Built on blockchain technology for transparent licensing, ownership, and community governance."
+    },
+    {
+      icon: <UsersIcon className="w-8 h-8" />,
+      title: "Community Driven",
+      description: "Join a global community of field recording enthusiasts, sound artists, and audio explorers."
+    },
+    {
+      icon: <ShieldCheckIcon className="w-8 h-8" />,
+      title: "Secure & Verified",
+      description: "All recordings are cryptographically verified with clear attribution and licensing information."
+    },
+    {
+      icon: <LightBulbIcon className="w-8 h-8" />,
+      title: "AI-Powered Discovery",
+      description: "Discover new sounds through intelligent recommendations and advanced audio analysis."
+    }
+  ];
+
+  const sampleRecordings = [
+    {
+      id: 1,
+      title: "Morning Forest Ambience",
+      artist: "NatureSounds",
+      src: "/api/audio/sample1.mp3",
+      duration: 180
+    },
+    {
+      id: 2,
+      title: "City Rain Patterns",
+      artist: "UrbanField",
+      src: "/api/audio/sample2.mp3", 
+      duration: 245
+    }
+  ];
+
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl animate-float" />
+        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-electric-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-frequency-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }} />
+      </div>
+
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto text-center mb-20 md:mb-28">
-        <div className="relative">
-          {/* Badge */}
-          <div className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300 mb-6">
-            <span className="relative flex h-2 w-2 mr-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
-            </span>
-            Écoutez la radio en direct
+      <section className="max-w-7xl mx-auto text-center mb-32 relative z-10">
+        <div className={cn(
+          "transition-all duration-1000 transform",
+          isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+        )}>
+          {/* Status Badge */}
+          <div className="inline-flex items-center px-6 py-3 rounded-full text-sm font-medium bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-primary-200/50 dark:border-primary-700/50 mb-8 shadow-lg">
+            <div className="relative flex h-3 w-3 mr-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </div>
+            <span className="text-gray-700 dark:text-gray-300">🎵 Live streaming now - Join 2,847 listeners</span>
           </div>
           
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-neutral-900 dark:text-white mb-6">
-            Découvrez des paysages sonores{' '}
-            <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              uniques
+          {/* Main Headline */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight text-gray-900 dark:text-white mb-8 leading-none">
+            The Future of{' '}
+            <span className="relative">
+              <span className="bg-gradient-to-r from-primary-600 via-electric-600 to-frequency-600 bg-clip-text text-transparent">
+                Audio
+              </span>
+              <div className="absolute -inset-2 bg-gradient-to-r from-primary-600/20 via-electric-600/20 to-frequency-600/20 blur-2xl -z-10" />
+            </span>
+            <br />
+            <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl">
+              Exploration
             </span>
           </h1>
           
-          <p className="mx-auto max-w-2xl text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 mb-10">
-            Plongez dans une expérience auditive immersive avec San2Stic. Explorez des enregistrements de terrain, écoutez notre radio en direct et partagez vos propres créations sonores avec la communauté.
+          {/* Subtitle */}
+          <p className="mx-auto max-w-3xl text-xl sm:text-2xl text-gray-600 dark:text-gray-300 mb-12 leading-relaxed">
+            Discover immersive soundscapes from around the world. Create, share, and explore field recordings in a 
+            <span className="font-semibold text-primary-600 dark:text-primary-400"> decentralized ecosystem</span> 
+            designed for the next generation of audio artists.
           </p>
           
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-            <Button 
-              asChild 
-              size="lg"
-              className="group"
-            >
-              <Link to="/map">
-                Explorer la carte
-                <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-            <Button 
-              asChild 
-              variant="outline" 
-              size="lg"
-              className="group"
-            >
-              <Link to="/radio">
-                <PlayCircleIcon className="h-5 w-5 mr-2 group-hover:animate-pulse" />
-                Écouter la radio
-              </Link>
-            </Button>
-          </div>
-          
-          {/* Hero Image/Video Placeholder */}
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-neutral-200 dark:border-neutral-800 bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-900 p-1">
-            <div className="aspect-video w-full bg-neutral-200 dark:bg-neutral-800 rounded-2xl flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-primary-100 to-secondary-100 flex items-center justify-center text-primary-600">
-                  <MicrophoneIcon className="h-8 w-8" />
-                </div>
-                <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-1">Expérience audio immersive</h3>
-                <p className="text-neutral-600 dark:text-neutral-400 text-sm">Découvrez des paysages sonores uniques à travers le monde</p>
-              </div>
-            </div>
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+            <Link to="/map">
+              <Button 
+                size="xl" 
+                variant="gradient" 
+                className="group min-w-64 shadow-xl hover:shadow-2xl transition-all duration-300"
+              >
+                <MapPinIcon className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform" />
+                Explore the Map
+                <ArrowRightIcon className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
             
-            {/* Floating elements */}
-            <div className="absolute -top-4 -left-4 w-24 h-24 rounded-full bg-primary-500/10 blur-3xl"></div>
-            <div className="absolute -bottom-4 -right-4 w-32 h-32 rounded-full bg-secondary-500/10 blur-3xl"></div>
+            <Link to="/radio">
+              <Button 
+                size="xl" 
+                variant="outline" 
+                className="min-w-64 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-white/20 hover:bg-white/90 dark:hover:bg-gray-800/90"
+              >
+                <RadioIcon className="w-6 h-6 mr-3" />
+                Listen Live
+              </Button>
+            </Link>
+          </div>
+
+          {/* Sample Audio Players */}
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {sampleRecordings.map((recording, index) => (
+              <div 
+                key={recording.id}
+                className={cn(
+                  "transition-all duration-700 transform",
+                  isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                )}
+                style={{ animationDelay: `${600 + index * 200}ms` }}
+              >
+                <AudioPlayer
+                  src={recording.src}
+                  title={recording.title}
+                  artist={recording.artist}
+                  compact={true}
+                  className="backdrop-blur-md"
+                />
+              </div>
+            ))}
           </div>
         </div>
       </section>
-      
-      {/* Features Section */}
-      <section className="max-w-7xl mx-auto mb-20 md:mb-28">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-4">
-            Une nouvelle façon d'explorer le son
-          </h2>
-          <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
-            San2Stic combine cartographie interactive et expérience audio pour une découverte unique des paysages sonores.
-          </p>
-        </div>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <FeatureCard
-            icon={<MapPinIcon className="h-6 w-6" />}
-            title="Carte interactive"
-            description="Naviguez sur une carte interactive et découvrez des enregistrements géolocalisés."
+
+      {/* Stats Section */}
+      <section className="max-w-6xl mx-auto mb-32">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <StatCard 
+            number="15K+" 
+            label="Recordings" 
+            icon={<SpeakerWaveIconSolid className="w-5 h-5" />}
+            delay={800}
           />
-          <FeatureCard
-            icon={<RadioIcon className="h-6 w-6" />}
-            title="Radio en direct"
-            description="Écoutez notre sélection musicale en continu, 24h/24."
-            className="md:translate-y-6"
+          <StatCard 
+            number="89" 
+            label="Countries" 
+            icon={<GlobeAltIcon className="w-5 h-5" />}
+            delay={900}
           />
-          <FeatureCard
-            icon={<UsersIcon className="h-6 w-6" />}
-            title="Communauté"
-            description="Rejoignez une communauté de passionnés du son et partagez vos créations."
-            className="lg:translate-y-12"
+          <StatCard 
+            number="3.2K" 
+            label="Artists" 
+            icon={<UsersIcon className="w-5 h-5" />}
+            delay={1000}
+          />
+          <StatCard 
+            number="24/7" 
+            label="Live Stream" 
+            icon={<RadioIcon className="w-5 h-5" />}
+            delay={1100}
           />
         </div>
       </section>
-      
+
+      {/* Features Grid */}
+      <section className="max-w-7xl mx-auto mb-32">
+        <div className={cn(
+          "text-center mb-16 transition-all duration-1000 transform",
+          isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+        )}>
+          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+            Redefining Audio{' '}
+            <span className="bg-gradient-to-r from-primary-600 to-electric-600 bg-clip-text text-transparent">
+              Experience
+            </span>
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+            Built with cutting-edge technology for the most immersive and decentralized field recording platform ever created.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <FeatureCard
+              key={index}
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+              delay={1200 + index * 100}
+              className={cn(
+                "transition-all duration-700 transform",
+                isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+              )}
+            />
+          ))}
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="max-w-4xl mx-auto text-center bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-neutral-900 dark:to-neutral-800 rounded-3xl p-8 md:p-12 relative overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary-500/10 blur-3xl"></div>
-        <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-secondary-500/10 blur-3xl"></div>
-        
-        <div className="relative">
-          <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-6">
-            Prêt à commencer votre voyage sonore ?
-          </h2>
-          <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-8 max-w-2xl mx-auto">
-            Rejoignez notre communauté et commencez à explorer, écouter et partager des paysages sonores uniques dès aujourd'hui.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button asChild size="lg" variant="gradient" className="group">
+      <section className="max-w-4xl mx-auto text-center">
+        <GlassCard className="p-12 bg-gradient-to-br from-white/80 to-primary-50/80 dark:from-gray-900/80 dark:to-primary-900/20 border-0">
+          <div className={cn(
+            "transition-all duration-1000 transform",
+            isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+          )}>
+            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+              Ready to{' '}
+              <span className="bg-gradient-to-r from-primary-600 to-electric-600 bg-clip-text text-transparent">
+                Start Creating?
+              </span>
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
+              Join thousands of sound artists and field recording enthusiasts in building the future of decentralized audio.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/signup">
-                Créer un compte
-                <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                <Button 
+                  size="xl" 
+                  variant="gradient"
+                  className="min-w-64 shadow-xl hover:shadow-2xl"
+                >
+                  <HeartIcon className="w-6 h-6 mr-3" />
+                  Join the Community
+                </Button>
               </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link to="/map">
-                Explorer sans compte
+              
+              <Link to="/upload">
+                <Button 
+                  size="xl" 
+                  variant="outline"
+                  className="min-w-64 backdrop-blur-md bg-white/80 dark:bg-gray-900/80"
+                >
+                  <MicrophoneIcon className="w-6 h-6 mr-3" />
+                  Upload Recording
+                </Button>
               </Link>
-            </Button>
+            </div>
           </div>
-        </div>
+        </GlassCard>
       </section>
     </div>
   );
-};
-
 export default Home;
