@@ -160,12 +160,12 @@ export class Web3Service {
     return await tx.wait();
   }
 
-  async getRecordingsByLocation(minLat, maxLat, minLng, maxLng, offset = 0, limit = 50) {
-    if (!this.contracts.recordingManager) {
+  async getRecordingsByLocationOptimized(minLat, maxLat, minLng, maxLng, offset = 0, limit = 50) {
+    if (!this.contracts.san2sticMapMain) {
       throw new Error('Contract not initialized');
     }
     
-    return await this.contracts.recordingManager.getRecordingsByLocation(
+    return await this.contracts.san2sticMapMain.getRecordingsByLocationOptimized(
       Math.floor(minLat * 1000000),
       Math.floor(maxLat * 1000000),
       Math.floor(minLng * 1000000),
@@ -173,6 +173,97 @@ export class Web3Service {
       offset,
       limit
     );
+  }
+
+  async getRecordingWithAllData(recordingId) {
+    if (!this.contracts.san2sticMapMain) {
+      throw new Error('Contract not initialized');
+    }
+    
+    return await this.contracts.san2sticMapMain.getRecordingWithAllData(recordingId);
+  }
+
+  async getUserDashboard(userAddress) {
+    if (!this.contracts.san2sticMapMain) {
+      throw new Error('Contract not initialized');
+    }
+    
+    return await this.contracts.san2sticMapMain.getUserDashboard(userAddress);
+  }
+
+  async getSystemStats() {
+    if (!this.contracts.san2sticMapMain) {
+      throw new Error('Contract not initialized');
+    }
+    
+    return await this.contracts.san2sticMapMain.getSystemStats();
+  }
+
+  async batchVoteOnRecordings(recordingIds, isUpvotes) {
+    if (!this.contracts.san2sticMapMain) {
+      throw new Error('Contract not initialized');
+    }
+    
+    const tx = await this.contracts.san2sticMapMain.batchVoteOnRecordings(recordingIds, isUpvotes);
+    return await tx.wait();
+  }
+
+  async batchRateRecordings(recordingIds, ratings) {
+    if (!this.contracts.san2sticMapMain) {
+      throw new Error('Contract not initialized');
+    }
+    
+    const tx = await this.contracts.san2sticMapMain.batchRateRecordings(recordingIds, ratings);
+    return await tx.wait();
+  }
+
+  async batchSetRecordingLicenses(recordingIds, licenseTypes, attributions) {
+    if (!this.contracts.san2sticMapMain) {
+      throw new Error('Contract not initialized');
+    }
+    
+    const tx = await this.contracts.san2sticMapMain.batchSetRecordingLicenses(
+      recordingIds, 
+      licenseTypes, 
+      attributions
+    );
+    return await tx.wait();
+  }
+
+  async registerUserAndAddRecording(userData) {
+    if (!this.contracts.san2sticMapMain) {
+      throw new Error('Contract not initialized');
+    }
+
+    const {
+      username,
+      title,
+      description,
+      ipfsHash,
+      latitude,
+      longitude,
+      tags,
+      duration,
+      quality,
+      equipment,
+      license
+    } = userData;
+
+    const tx = await this.contracts.san2sticMapMain.registerUserAndAddRecording(
+      username,
+      title,
+      description,
+      ipfsHash,
+      Math.floor(latitude * 1000000),
+      Math.floor(longitude * 1000000),
+      tags,
+      duration,
+      quality,
+      equipment,
+      license
+    );
+    
+    return await tx.wait();
   }
 
   isConnected() {
