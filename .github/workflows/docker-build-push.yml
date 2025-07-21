@@ -24,7 +24,7 @@ jobs:
         service:
           - name: backend
             context: .
-            dockerfile: infra/Dockerfile.backend
+            dockerfile: ./infra/Dockerfile.backend
           - name: frontend
             context: ./frontend
             dockerfile: Dockerfile
