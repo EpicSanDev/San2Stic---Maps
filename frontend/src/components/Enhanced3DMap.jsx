@@ -26,6 +26,7 @@ import { cn } from '../utils/cn';
 import { GlassCard } from './ui/GlassCard';
 import { AudioPlayer } from './ui/AudioPlayer';
 import { socialAPI } from '../utils/api';
+import { useNotification } from '../contexts/NotificationContext';
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 
@@ -211,6 +212,7 @@ const Enhanced3DPopup = ({ recording, onClose, onPlay, isPlaying }) => {
   const [socialData, setSocialData] = useState(null);
   const [isLoadingSocial, setIsLoadingSocial] = useState(true);
   const [error, setError] = useState(null);
+  const { success, error: showError, warning } = useNotification();
 
   // Load social data when component mounts
   useEffect(() => {
@@ -245,15 +247,23 @@ const Enhanced3DPopup = ({ recording, onClose, onPlay, isPlaying }) => {
   const handleRate = async (rating) => {
     try {
       setError(null);
-      await socialAPI.rateRecording(recording.id, rating);
-      setCurrentRating(rating);
+      const result = await socialAPI.rateRecording(recording.id, rating);
       
-      // Update social data
-      const updatedData = await socialAPI.getSocialData(recording.id);
-      setSocialData(updatedData);
+      if (result.offline) {
+        warning('Rating will be saved when you\'re back online');
+        setCurrentRating(rating);
+      } else {
+        success('Rating saved successfully');
+        setCurrentRating(rating);
+        
+        // Update social data
+        const updatedData = await socialAPI.getSocialData(recording.id);
+        setSocialData(updatedData);
+      }
     } catch (err) {
       console.error('Error rating recording:', err);
       setError(err.message);
+      showError('Failed to save rating');
       // Reset rating on error
       setCurrentRating(socialData?.userRating || 0);
     }
@@ -262,20 +272,27 @@ const Enhanced3DPopup = ({ recording, onClose, onPlay, isPlaying }) => {
   const handleLike = async () => {
     try {
       setError(null);
-      if (isLiked) {
-        await socialAPI.unlikeRecording(recording.id);
+      const newLikedState = !isLiked;
+      
+      const result = newLikedState 
+        ? await socialAPI.likeRecording(recording.id)
+        : await socialAPI.unlikeRecording(recording.id);
+      
+      if (result.offline) {
+        warning(`${newLikedState ? 'Like' : 'Unlike'} will be saved when you're back online`);
+        setIsLiked(newLikedState);
       } else {
-        await socialAPI.likeRecording(recording.id);
+        success(`Recording ${newLikedState ? 'liked' : 'unliked'} successfully`);
+        setIsLiked(newLikedState);
+        
+        // Update social data
+        const updatedData = await socialAPI.getSocialData(recording.id);
+        setSocialData(updatedData);
       }
-      
-      setIsLiked(!isLiked);
-      
-      // Update social data
-      const updatedData = await socialAPI.getSocialData(recording.id);
-      setSocialData(updatedData);
     } catch (err) {
       console.error('Error toggling like:', err);
       setError(err.message);
+      showError('Failed to save like');
       // Reset like state on error
       setIsLiked(socialData?.liked || false);
     }

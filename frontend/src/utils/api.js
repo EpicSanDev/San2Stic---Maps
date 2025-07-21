@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isOnline, queueOfflineAction } from './serviceWorker';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000/api';
 
@@ -17,7 +18,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth errors
+// Handle auth errors and offline scenarios
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -29,16 +30,41 @@ api.interceptors.response.use(
   }
 );
 
+// Wrapper for API calls with offline support
+const apiCallWithOfflineSupport = async (apiCall, offlineAction = null) => {
+  if (!isOnline() && offlineAction) {
+    // Queue action for when back online
+    queueOfflineAction(offlineAction);
+    return { message: 'Action queued for when back online', offline: true };
+  }
+  
+  try {
+    const result = await apiCall();
+    return result;
+  } catch (error) {
+    if (!isOnline() && offlineAction) {
+      queueOfflineAction(offlineAction);
+      return { message: 'Action queued for when back online', offline: true };
+    }
+    throw error;
+  }
+};
+
 // Social API functions
 export const socialAPI = {
   // Rating functions
   rateRecording: async (recordingId, rating) => {
-    try {
-      const response = await api.post(`/social/recordings/${recordingId}/rate`, { rating });
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to rate recording');
-    }
+    return apiCallWithOfflineSupport(
+      async () => {
+        const response = await api.post(`/social/recordings/${recordingId}/rate`, { rating });
+        return response.data;
+      },
+      {
+        type: 'RATE_RECORDING',
+        recordingId,
+        rating
+      }
+    );
   },
 
   getRating: async (recordingId) => {
@@ -61,21 +87,31 @@ export const socialAPI = {
 
   // Like functions
   likeRecording: async (recordingId) => {
-    try {
-      const response = await api.post(`/social/recordings/${recordingId}/like`);
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to like recording');
-    }
+    return apiCallWithOfflineSupport(
+      async () => {
+        const response = await api.post(`/social/recordings/${recordingId}/like`);
+        return response.data;
+      },
+      {
+        type: 'LIKE_RECORDING',
+        recordingId,
+        isLiked: false
+      }
+    );
   },
 
   unlikeRecording: async (recordingId) => {
-    try {
-      const response = await api.delete(`/social/recordings/${recordingId}/like`);
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to unlike recording');
-    }
+    return apiCallWithOfflineSupport(
+      async () => {
+        const response = await api.delete(`/social/recordings/${recordingId}/like`);
+        return response.data;
+      },
+      {
+        type: 'LIKE_RECORDING',
+        recordingId,
+        isLiked: true
+      }
+    );
   },
 
   // Social data
