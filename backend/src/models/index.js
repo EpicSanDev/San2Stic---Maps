@@ -103,15 +103,16 @@ const initDB = async () => {
   // Force sync to handle schema changes (drops existing tables)
   // WARNING: This will delete all existing data!
   // In production, use proper migrations instead of force: true
-  const shouldForceSync = process.env.NODE_ENV !== 'production';
+  const shouldForceSync = process.env.NODE_ENV !== 'production' || process.env.FORCE_DB_SYNC === 'true';
   
   if (shouldForceSync) {
     console.log('⚠️  WARNING: Force syncing database - all data will be lost!');
     await sequelize.sync({ force: true });
     console.log('✅ Database synced successfully with force: true');
   } else {
-    await sequelize.sync();
-    console.log('✅ Database synced successfully');
+    // Use alter: true to add missing columns without dropping tables
+    await sequelize.sync({ alter: true });
+    console.log('✅ Database synced successfully with alter: true');
   }
 };
 
