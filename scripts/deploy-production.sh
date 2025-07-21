@@ -5,6 +5,24 @@ set -e
 echo "🚀 San2Stic Production Deployment Script"
 echo "========================================"
 
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Determine which Docker Compose command to use
+if docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command_exists docker-compose; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+else
+    echo "❌ Error: Neither 'docker compose' nor 'docker-compose' is available."
+    exit 1
+fi
+
+echo "ℹ️  Using Docker Compose command: $DOCKER_COMPOSE_CMD"
+echo ""
+
 # Vérifier que nous sommes dans le bon répertoire
 if [ ! -f "docker-compose.production.yml" ]; then
     echo "❌ Error: docker-compose.production.yml not found. Please run this script from the project root."
@@ -69,7 +87,7 @@ setup_ssl() {
 build_images() {
     echo "🏗️  Building Docker images..."
     
-    docker-compose -f docker-compose.production.yml build --no-cache
+    $DOCKER_COMPOSE_CMD -f docker-compose.production.yml build --no-cache
     
     echo "✅ Docker images built successfully"
 }
@@ -79,10 +97,10 @@ start_services() {
     echo "🚀 Starting production services..."
     
     # Arrêter les services existants s'ils existent
-    docker-compose -f docker-compose.production.yml down --remove-orphans
+    $DOCKER_COMPOSE_CMD -f docker-compose.production.yml down --remove-orphans
     
     # Démarrer les services
-    docker-compose -f docker-compose.production.yml up -d
+    $DOCKER_COMPOSE_CMD -f docker-compose.production.yml up -d
     
     echo "✅ Services started successfully"
 }
@@ -97,11 +115,11 @@ check_health() {
     services=("db" "redis" "ipfs" "backend" "icecast" "frontend" "nginx-clearweb" "nginx-tor" "tor")
     
     for service in "${services[@]}"; do
-        if docker-compose -f docker-compose.production.yml ps | grep -q "$service.*Up"; then
+        if $DOCKER_COMPOSE_CMD -f docker-compose.production.yml ps | grep -q "$service.*Up"; then
             echo "✅ $service is running"
         else
             echo "❌ $service is not running"
-            docker-compose -f docker-compose.production.yml logs "$service"
+            $DOCKER_COMPOSE_CMD -f docker-compose.production.yml logs "$service"
         fi
     done
 }
@@ -122,8 +140,8 @@ show_connection_info() {
     echo "⏳ Waiting for Tor .onion address generation..."
     timeout=60
     while [ $timeout -gt 0 ]; do
-        if docker-compose -f docker-compose.production.yml exec -T tor cat /var/lib/tor/hidden_service/hostname 2>/dev/null; then
-            onion_address=$(docker-compose -f docker-compose.production.yml exec -T tor cat /var/lib/tor/hidden_service/hostname 2>/dev/null | tr -d '\r\n')
+        if $DOCKER_COMPOSE_CMD -f docker-compose.production.yml exec -T tor cat /var/lib/tor/hidden_service/hostname 2>/dev/null; then
+            onion_address=$($DOCKER_COMPOSE_CMD -f docker-compose.production.yml exec -T tor cat /var/lib/tor/hidden_service/hostname 2>/dev/null | tr -d '\r\n')
             echo "Tor Hidden Service: http://$onion_address"
             break
         fi
@@ -132,7 +150,7 @@ show_connection_info() {
     done
     
     if [ $timeout -le 0 ]; then
-        echo "⚠️  Tor .onion address not ready yet. Check logs: docker-compose -f docker-compose.production.yml logs tor"
+        echo "⚠️  Tor .onion address not ready yet. Check logs: $DOCKER_COMPOSE_CMD -f docker-compose.production.yml logs tor"
     fi
     
     echo ""
@@ -155,7 +173,7 @@ show_logs() {
     echo ""
     echo "📋 Recent logs:"
     echo "==============="
-    docker-compose -f docker-compose.production.yml logs --tail=20
+    $DOCKER_COMPOSE_CMD -f docker-compose.production.yml logs --tail=20
 }
 
 # Menu principal
@@ -169,27 +187,27 @@ case "${1:-deploy}" in
         show_connection_info
         ;;
     "start")
-        docker-compose -f docker-compose.production.yml up -d
+        $DOCKER_COMPOSE_CMD -f docker-compose.production.yml up -d
         check_health
         show_connection_info
         ;;
     "stop")
-        docker-compose -f docker-compose.production.yml down
+        $DOCKER_COMPOSE_CMD -f docker-compose.production.yml down
         ;;
     "restart")
-        docker-compose -f docker-compose.production.yml restart
+        $DOCKER_COMPOSE_CMD -f docker-compose.production.yml restart
         check_health
         ;;
     "logs")
-        docker-compose -f docker-compose.production.yml logs -f
+        $DOCKER_COMPOSE_CMD -f docker-compose.production.yml logs -f
         ;;
     "status")
-        docker-compose -f docker-compose.production.yml ps
+        $DOCKER_COMPOSE_CMD -f docker-compose.production.yml ps
         show_connection_info
         ;;
     "clean")
         echo "🧹 Cleaning up..."
-        docker-compose -f docker-compose.production.yml down --volumes --remove-orphans
+        $DOCKER_COMPOSE_CMD -f docker-compose.production.yml down --volumes --remove-orphans
         docker system prune -f
         ;;
     *)
