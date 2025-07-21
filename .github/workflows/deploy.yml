@@ -46,7 +46,7 @@ jobs:
       env:
         GITHUB_REPOSITORY: ${{ github.repository }}
       run: |
-        echo "✅ Using repository's docker-compose.yml"
+        echo "✅ Using repository's docker-compose.prod.yml for production deployment"
         echo "🔍 Repository: $GITHUB_REPOSITORY"
         echo "🔍 Registry: ${{ env.REGISTRY }}"
         echo ""
@@ -59,30 +59,43 @@ jobs:
         echo "  - ghcr.io/$GITHUB_REPOSITORY/ipfs:latest"
         echo "  - ghcr.io/$GITHUB_REPOSITORY/icecast:latest"
         echo ""
-        cat docker-compose.prod.yml
+        echo "📄 Raw docker-compose.prod.yml content (first 30 lines):"
+        head -30 docker-compose.prod.yml
     - name: Deploy to ${{ github.event.inputs.environment || 'staging' }}
       env:
         GITHUB_REPOSITORY: ${{ github.repository }}
       run: |
         echo "🚀 Deploying to ${{ github.event.inputs.environment || 'staging' }}"
         echo "Repository: $GITHUB_REPOSITORY"
-        echo "Images used:"
-        echo "- Backend: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest"
-        echo "- Frontend: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest"
-        echo "- Nginx: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/nginx:latest"
-        echo "- Tor: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/tor:latest"
-        echo "- IPFS: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/ipfs:latest"
-        echo "- Icecast: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/icecast:latest"
+        echo "Registry: ${{ env.REGISTRY }}"
+        echo ""
+        echo "Images used from docker-compose.prod.yml:"
+        echo "- Backend: ghcr.io/$GITHUB_REPOSITORY/backend:latest"
+        echo "- Frontend: ghcr.io/$GITHUB_REPOSITORY/frontend:latest"
+        echo "- Nginx: ghcr.io/$GITHUB_REPOSITORY/nginx:latest"
+        echo "- Tor: ghcr.io/$GITHUB_REPOSITORY/tor:latest"
+        echo "- IPFS: ghcr.io/$GITHUB_REPOSITORY/ipfs:latest"
+        echo "- Icecast: ghcr.io/$GITHUB_REPOSITORY/icecast:latest"
+        
+        # Verify the docker-compose.prod.yml file has the correct variables substituted
+        echo ""
+        echo "🔍 Verifying docker-compose.prod.yml variable substitution:"
+        envsubst < docker-compose.prod.yml | head -20
         
         # Export the repository name for docker-compose
         export GITHUB_REPOSITORY="${{ github.repository }}"
         
+        # Test that docker-compose can parse the file correctly
+        echo ""
+        echo "🧪 Testing docker-compose configuration:"
+        docker-compose -f docker-compose.prod.yml config --quiet
+        
         # Here you would add your actual deployment commands
         # For example, if deploying to a remote server:
         # scp docker-compose.prod.yml user@server:/path/to/app/
-        # ssh user@server "cd /path/to/app && docker-compose -f docker-compose.prod.yml up -d"
+        # ssh user@server "cd /path/to/app && GITHUB_REPOSITORY=$GITHUB_REPOSITORY docker-compose -f docker-compose.prod.yml up -d"
         
-        echo "✅ Deployment completed successfully!"
+        echo "✅ Deployment configuration validated successfully!"
 
     - name: Upload production compose file
       uses: actions/upload-artifact@v4
