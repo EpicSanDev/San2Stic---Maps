@@ -11,16 +11,10 @@ import Map, {
 } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { 
-  SpeakerWaveIcon,
-  PlayIcon,
   PauseIcon,
   StarIcon,
   EyeIcon,
-  HeartIcon,
-  MapPinIcon,
-  Cog6ToothIcon,
-  AdjustmentsHorizontalIcon,
-  MagnifyingGlassIcon
+  HeartIcon
 } from '@heroicons/react/24/outline';
 import { 
   SpeakerWaveIcon as SpeakerWaveIconSolid,
@@ -30,7 +24,6 @@ import {
 import { cn } from '../utils/cn';
 import { GlassCard } from './ui/GlassCard';
 import { AudioPlayer } from './ui/AudioPlayer';
-import { LoadingSpinner } from './ui/LoadingSpinner';
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 

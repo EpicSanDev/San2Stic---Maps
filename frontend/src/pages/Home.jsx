@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { 
   ArrowRightIcon, 
-  PlayCircleIcon, 
   MicrophoneIcon, 
   MapPinIcon, 
   RadioIcon, 
   UsersIcon,
   SpeakerWaveIcon,
-  StarIcon,
   GlobeAltIcon,
   ShieldCheckIcon,
   LightBulbIcon,
   HeartIcon
 } from '@heroicons/react/24/outline';
 import { 
-  SpeakerWaveIcon as SpeakerWaveIconSolid,
-  StarIcon as StarIconSolid 
+  SpeakerWaveIcon as SpeakerWaveIconSolid
 } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -63,7 +60,6 @@ const StatCard = ({ number, label, icon, delay = 0 }) => (
 
 const Home = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
 
   useEffect(() => {
     setIsVisible(true);
@@ -347,4 +343,6 @@ const Home = () => {
       </section>
     </div>
   );
+};
+
 export default Home;

@@ -9,9 +9,7 @@ import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   SunIcon,
-  MoonIcon,
-  Cog6ToothIcon,
-  SpeakerWaveIcon
+  MoonIcon
 } from '@heroicons/react/24/outline';
 import { SpeakerWaveIcon as SpeakerWaveIconSolid } from '@heroicons/react/24/solid';
 import { useAuth } from '../hooks/useAuth';
@@ -308,6 +306,7 @@ const Navbar = () => {
               </div>
             </GlassCard>
           </div>
+        )}
       </nav>
     </header>
   );
