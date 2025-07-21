@@ -59,7 +59,7 @@ jobs:
         echo "  - ghcr.io/$GITHUB_REPOSITORY/ipfs:latest"
         echo "  - ghcr.io/$GITHUB_REPOSITORY/icecast:latest"
         echo ""
-        cat docker-compose.yml
+        cat docker-compose.prod.yml
     - name: Deploy to ${{ github.event.inputs.environment || 'staging' }}
       env:
         GITHUB_REPOSITORY: ${{ github.repository }}
