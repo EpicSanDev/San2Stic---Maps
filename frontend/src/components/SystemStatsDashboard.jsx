@@ -6,7 +6,7 @@ import {
   HandThumbUpIcon,
   StarIcon,
   ShieldCheckIcon,
-  TrendingUpIcon,
+  ArrowTrendingUpIcon,
   ClockIcon
 } from '@heroicons/react/24/outline';
 import { Card, CardContent } from './ui/Card';
@@ -69,7 +69,7 @@ const SystemStatsDashboard = ({ isOpen, onClose }) => {
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
               ) : (
                 <>
-                  <TrendingUpIcon className="h-4 w-4 mr-1" />
+                  <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
                   Actualiser
                 </>
               )}
@@ -304,7 +304,7 @@ const SystemStatsDashboard = ({ isOpen, onClose }) => {
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                    <TrendingUpIcon className="h-5 w-5 mr-2" />
+                    <ArrowTrendingUpIcon className="h-5 w-5 mr-2" />
                     Indicateurs de santé de la plateforme
                   </h3>
                   

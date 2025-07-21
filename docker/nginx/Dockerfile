@@ -6,13 +6,13 @@ RUN apk add --no-cache \
     curl \
     netcat-openbsd
 
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY default.conf.template /etc/nginx/templates/default.conf.template
-COPY tor.conf.template /etc/nginx/templates/tor.conf.template
-COPY clearweb.conf.template /etc/nginx/templates/clearweb.conf.template
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY entrypoint.tor.sh /usr/local/bin/entrypoint.tor.sh
-COPY entrypoint.clearweb.sh /usr/local/bin/entrypoint.clearweb.sh
+COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY docker/nginx/tor.conf.template /etc/nginx/templates/tor.conf.template
+COPY docker/nginx/clearweb.conf.template /etc/nginx/templates/clearweb.conf.template
+COPY docker/nginx/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/nginx/entrypoint.tor.sh /usr/local/bin/entrypoint.tor.sh
+COPY docker/nginx/entrypoint.clearweb.sh /usr/local/bin/entrypoint.clearweb.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh && \
     chmod +x /usr/local/bin/entrypoint.tor.sh && \

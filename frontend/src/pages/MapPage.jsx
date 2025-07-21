@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   ExclamationTriangleIcon, 
   ArrowPathIcon, 
   ChevronDownIcon, 
   MagnifyingGlassIcon, 
-  AdjustmentsHorizontalIcon, 
-  PlusIcon,
-  ChartBarIcon,
-  BoltIcon,
-  UserIcon
+  AdjustmentsHorizontalIcon
 } from '@heroicons/react/24/outline';
 import MapView from '../components/MapView';
 import RecordingDetailsModal from '../components/RecordingDetailsModal';
@@ -17,8 +12,6 @@ import BatchOperationsPanel from '../components/BatchOperationsPanel';
 import UserDashboard from '../components/UserDashboard';
 import SystemStatsDashboard from '../components/SystemStatsDashboard';
 import { useRecordings } from '../hooks/useRecordings';
-import { useWeb3 } from '../hooks/useWeb3';
-import { web3Service } from '../utils/web3';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { cn } from '../utils/cn';
@@ -127,10 +120,14 @@ const MapControls = ({ recordings, onViewModeChange, viewMode }) => {
 };
 
 const MapPage = () => {
-  const navigate = useNavigate();
   const { recordings, isLoading, error, fetchRecordingsFromContract } = useRecordings();
   const [viewMode, setViewMode] = useState('markers');
   const [filteredRecordings, setFilteredRecordings] = useState([]);
+  const [selectedRecording, setSelectedRecording] = useState(null);
+  const [showBatchPanel, setShowBatchPanel] = useState(false);
+  const [showUserDashboard, setShowUserDashboard] = useState(false);
+  const [selectedUserAddress, setSelectedUserAddress] = useState(null);
+  const [showSystemStats, setShowSystemStats] = useState(false);
 
   useEffect(() => {
     setFilteredRecordings(recordings || []);
@@ -151,6 +148,33 @@ const MapPage = () => {
 
   const handleRetry = () => {
     fetchRecordingsFromContract();
+  };
+
+  const openUserDashboard = (userAddress) => {
+    setSelectedUserAddress(userAddress);
+    setShowUserDashboard(true);
+  };
+
+  const handleVoteOnRecording = async (recordingId, vote) => {
+    try {
+      // Implement voting logic here
+      console.log('Voting on recording:', recordingId, vote);
+      // Refresh recordings after voting
+      await fetchRecordingsFromContract();
+    } catch (error) {
+      console.error('Error voting on recording:', error);
+    }
+  };
+
+  const handleRateRecording = async (recordingId, rating) => {
+    try {
+      // Implement rating logic here
+      console.log('Rating recording:', recordingId, rating);
+      // Refresh recordings after rating
+      await fetchRecordingsFromContract();
+    } catch (error) {
+      console.error('Error rating recording:', error);
+    }
   };
 
   if (isLoading) {
@@ -181,18 +205,6 @@ const MapPage = () => {
           onViewModeChange={setViewMode}
           viewMode={viewMode}
         />
-        
-  const applyFilters = () => {
-    let filtered = recordings || [];
-    
-    if (filters.tags.length > 0) {
-      filtered = filtered.filter(recording => 
-        recording.tags?.some(tag => filters.tags.includes(tag))
-      );
-    }
-    
-    setFilteredRecordings(filtered);
-  };
         
         {/* Recording Count Badge */}
         {recordings && recordings.length > 0 && (

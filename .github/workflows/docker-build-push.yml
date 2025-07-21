@@ -29,8 +29,8 @@ jobs:
             context: ./frontend
             dockerfile: Dockerfile
           - name: nginx
-            context: ./docker/nginx
-            dockerfile: Dockerfile
+            context: .
+            dockerfile: ./docker/nginx/Dockerfile
           - name: tor
             context: ./docker/tor
             dockerfile: Dockerfile
