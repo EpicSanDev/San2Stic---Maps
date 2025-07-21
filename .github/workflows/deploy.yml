@@ -43,12 +43,29 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Use dynamic docker-compose
+      env:
+        GITHUB_REPOSITORY: ${{ github.repository }}
       run: |
-        echo "✅ Using repository's docker-compose.prod.yml"
+        echo "✅ Using repository's docker-compose.yml"
+        echo "🔍 Repository: $GITHUB_REPOSITORY"
+        echo "🔍 Registry: ${{ env.REGISTRY }}"
+        echo ""
+        echo "📋 Docker-compose configuration preview:"
+        echo "Image URLs will be resolved as:"
+        echo "  - ghcr.io/$GITHUB_REPOSITORY/backend:latest"
+        echo "  - ghcr.io/$GITHUB_REPOSITORY/frontend:latest"
+        echo "  - ghcr.io/$GITHUB_REPOSITORY/nginx:latest"
+        echo "  - ghcr.io/$GITHUB_REPOSITORY/tor:latest"
+        echo "  - ghcr.io/$GITHUB_REPOSITORY/ipfs:latest"
+        echo "  - ghcr.io/$GITHUB_REPOSITORY/icecast:latest"
+        echo ""
         cat docker-compose.yml
     - name: Deploy to ${{ github.event.inputs.environment || 'staging' }}
+      env:
+        GITHUB_REPOSITORY: ${{ github.repository }}
       run: |
         echo "🚀 Deploying to ${{ github.event.inputs.environment || 'staging' }}"
+        echo "Repository: $GITHUB_REPOSITORY"
         echo "Images used:"
         echo "- Backend: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest"
         echo "- Frontend: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest"
@@ -56,6 +73,9 @@ jobs:
         echo "- Tor: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/tor:latest"
         echo "- IPFS: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/ipfs:latest"
         echo "- Icecast: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/icecast:latest"
+        
+        # Export the repository name for docker-compose
+        export GITHUB_REPOSITORY="${{ github.repository }}"
         
         # Here you would add your actual deployment commands
         # For example, if deploying to a remote server:
