@@ -47,12 +47,27 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Debug - List workspace contents
+      run: |
+        echo "=== Root directory ==="
+        ls -la
+        echo "=== Backend directory ==="
+        ls -la backend/ || echo "backend directory not found"
+        echo "=== Backend/src directory ==="
+        ls -la backend/src/ || echo "backend/src directory not found"
+        echo "=== Contracts directory ==="
+        ls -la contracts/ || echo "contracts directory not found"
+        echo "=== Contracts/out directory ==="
+        ls -la contracts/out/ || echo "contracts/out directory not found"
+
     - name: Install Foundry
+      if: matrix.service.name == 'backend'
       uses: foundry-rs/foundry-toolchain@v1
       with:
         version: nightly
 
     - name: Compile Smart Contracts
+      if: matrix.service.name == 'backend'
       run: |
         cd contracts
         forge build
