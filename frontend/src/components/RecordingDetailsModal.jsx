@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   XMarkIcon, 
   PlayIcon, 
@@ -35,12 +35,6 @@ const LICENSE_LABELS = {
   6: 'Domaine public'
 };
 
-const STATUS_LABELS = {
-  0: 'En attente',
-  1: 'Approuvé',
-  2: 'Rejeté', 
-  3: 'Signalé'
-};
 
 const RecordingDetailsModal = ({ recording, isOpen, onClose, onVote, onRate }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -49,13 +43,7 @@ const RecordingDetailsModal = ({ recording, isOpen, onClose, onVote, onRate }) =
   const [recordingDetails, setRecordingDetails] = useState(null);
   const { isConnected, address } = useWeb3();
 
-  useEffect(() => {
-    if (isOpen && recording) {
-      fetchFullRecordingDetails();
-    }
-  }, [isOpen, recording]);
-
-  const fetchFullRecordingDetails = async () => {
+  const fetchFullRecordingDetails = useCallback(async () => {
     try {
       setLoading(true);
       if (web3Service.isConnected()) {
@@ -68,7 +56,13 @@ const RecordingDetailsModal = ({ recording, isOpen, onClose, onVote, onRate }) =
     } finally {
       setLoading(false);
     }
-  };
+  }, [recording]);
+
+  useEffect(() => {
+    if (isOpen && recording) {
+      fetchFullRecordingDetails();
+    }
+  }, [isOpen, recording, fetchFullRecordingDetails]);
 
   const handleVote = async (isUpvote) => {
     try {

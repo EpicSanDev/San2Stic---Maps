@@ -4,7 +4,6 @@ import { useRecordings } from '../hooks/useRecordings';
 import { useWeb3 } from '../hooks/useWeb3';
 import { 
   UserIcon, 
-  MapPinIcon, 
   MicrophoneIcon, 
   StarIcon,
   CalendarIcon,
@@ -14,9 +13,6 @@ import {
   WalletIcon,
   BoltIcon,
   TrophyIcon,
-  EnvelopeIcon,
-  ShieldCheckIcon,
-  LockClosedIcon,
   MusicalNoteIcon,
   PencilIcon,
   CameraIcon

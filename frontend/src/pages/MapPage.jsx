@@ -54,22 +54,12 @@ const ErrorScreen = ({ error, onRetry }) => (
 
 const MapControls = ({ recordings, onViewModeChange, viewMode, onFilterChange }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [filters, setFilters] = useState({
-    tags: [],
-    quality: 'all',
-    sortBy: 'recent'
-  });
   
   const recordingCount = recordings?.length || 0;
   const qualityCounts = recordings?.reduce((acc, r) => {
     acc[r.quality || 'unknown'] = (acc[r.quality || 'unknown'] || 0) + 1;
     return acc;
   }, {}) || {};
-
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
-    onFilterChange?.(newFilters);
-  };
 
   return (
     <div className="absolute top-6 left-6 z-20 w-80 max-w-[calc(100vw-48px)]">
