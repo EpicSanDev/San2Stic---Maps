@@ -85,15 +85,15 @@ jobs:
         # Export the repository name for docker-compose
         export GITHUB_REPOSITORY="${{ github.repository }}"
         
-        # Test that docker-compose can parse the file correctly
+        # Test that docker compose can parse the file correctly
         echo ""
         echo "🧪 Testing docker-compose configuration:"
-        docker-compose -f docker-compose.prod.yml config --quiet
+        docker compose -f docker-compose.prod.yml config --quiet
         
         # Here you would add your actual deployment commands
         # For example, if deploying to a remote server:
         # scp docker-compose.prod.yml user@server:/path/to/app/
-        # ssh user@server "cd /path/to/app && GITHUB_REPOSITORY=$GITHUB_REPOSITORY docker-compose -f docker-compose.prod.yml up -d"
+        # ssh user@server "cd /path/to/app && GITHUB_REPOSITORY=$GITHUB_REPOSITORY docker compose -f docker-compose.prod.yml up -d"
         
         echo "✅ Deployment configuration validated successfully!"
 
