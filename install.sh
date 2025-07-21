@@ -53,6 +53,16 @@ check_requirements() {
         exit 1
     fi
     
+    # Determine which Docker Compose command to use
+    if docker compose version >/dev/null 2>&1; then
+        DOCKER_COMPOSE_CMD="docker compose"
+    elif command_exists docker-compose; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+    else
+        print_error "Neither 'docker compose' nor 'docker-compose' is available."
+        exit 1
+    fi
+    
     if ! command_exists git; then
         print_error "Git is not installed. Please install Git first."
         exit 1
@@ -63,7 +73,7 @@ check_requirements() {
         exit 1
     fi
     
-    print_success "All requirements satisfied"
+    print_success "All requirements satisfied (using: $DOCKER_COMPOSE_CMD)"
 }
 
 setup_environment() {
@@ -116,13 +126,13 @@ start_services() {
     print_status "Starting San2Stic services..."
     
     print_status "Pulling latest Docker images..."
-    docker-compose pull
+    $DOCKER_COMPOSE_CMD pull
     
     print_status "Building custom Docker images..."
-    docker-compose build
+    $DOCKER_COMPOSE_CMD build
     
     print_status "Starting all services..."
-    docker-compose up -d
+    $DOCKER_COMPOSE_CMD up -d
     
     print_success "All services started"
 }
@@ -132,7 +142,7 @@ wait_for_services() {
     
     print_status "Waiting for database..."
     timeout=60
-    while ! docker-compose exec -T db pg_isready -U san2stic >/dev/null 2>&1; do
+    while ! $DOCKER_COMPOSE_CMD exec -T db pg_isready -U san2stic >/dev/null 2>&1; do
         sleep 2
         timeout=$((timeout - 2))
         if [ $timeout -le 0 ]; then
@@ -144,7 +154,7 @@ wait_for_services() {
     
     print_status "Waiting for IPFS node..."
     timeout=60
-    while ! docker-compose exec -T ipfs ipfs id >/dev/null 2>&1; do
+    while ! $DOCKER_COMPOSE_CMD exec -T ipfs ipfs id >/dev/null 2>&1; do
         sleep 2
         timeout=$((timeout - 2))
         if [ $timeout -le 0 ]; then
@@ -171,7 +181,7 @@ get_onion_address() {
     print_status "Retrieving Tor .onion address..."
     
     timeout=300  # 5 minutes for vanity address generation
-    while [ ! -f "$(docker-compose exec -T tor cat /shared/onion_address.txt 2>/dev/null)" ] && [ $timeout -gt 0 ]; do
+    while [ ! -f "$($DOCKER_COMPOSE_CMD exec -T tor cat /shared/onion_address.txt 2>/dev/null)" ] && [ $timeout -gt 0 ]; do
         sleep 5
         timeout=$((timeout - 5))
         if [ $((timeout % 30)) -eq 0 ]; then
@@ -183,19 +193,19 @@ get_onion_address() {
         print_warning "Vanity .onion address generation timed out. Using standard address."
     fi
     
-    ONION_ADDRESS=$(docker-compose exec -T tor cat /var/lib/tor/hidden_service/hostname 2>/dev/null | tr -d '\r\n' || echo "Address not ready")
+    ONION_ADDRESS=$($DOCKER_COMPOSE_CMD exec -T tor cat /var/lib/tor/hidden_service/hostname 2>/dev/null | tr -d '\r\n' || echo "Address not ready")
     
     if [ "$ONION_ADDRESS" != "Address not ready" ]; then
         print_success "Tor hidden service is available at: $ONION_ADDRESS"
     else
-        print_warning "Tor .onion address not yet available. Check logs with: docker-compose logs tor"
+        print_warning "Tor .onion address not yet available. Check logs with: $DOCKER_COMPOSE_CMD logs tor"
     fi
 }
 
 setup_database() {
     print_status "Setting up database..."
     
-    docker-compose exec -T db psql -U san2stic -d san2stic -c "SELECT create_performance_indexes();" >/dev/null 2>&1 || true
+    $DOCKER_COMPOSE_CMD exec -T db psql -U san2stic -d san2stic -c "SELECT create_performance_indexes();" >/dev/null 2>&1 || true
     
     print_success "Database setup completed"
 }
@@ -213,14 +223,14 @@ display_info() {
     echo "🗄️  Database: PostgreSQL on localhost:5432"
     echo ""
     echo "📋 Management Commands:"
-    echo "  View logs:           docker-compose logs -f"
-    echo "  Stop services:       docker-compose down"
-    echo "  Restart services:    docker-compose restart"
-    echo "  Update services:     docker-compose pull && docker-compose up -d"
+    echo "  View logs:           $DOCKER_COMPOSE_CMD logs -f"
+    echo "  Stop services:       $DOCKER_COMPOSE_CMD down"
+    echo "  Restart services:    $DOCKER_COMPOSE_CMD restart"
+    echo "  Update services:     $DOCKER_COMPOSE_CMD pull && $DOCKER_COMPOSE_CMD up -d"
     echo ""
     echo "🔧 Configuration:"
     echo "  Environment file:    .env"
-    echo "  Docker compose:      docker-compose.yml"
+    echo "  Docker compose:      docker-compose.yml (using: $DOCKER_COMPOSE_CMD)"
     echo ""
     echo "⚠️  Security Notes:"
     echo "  - Change default passwords in .env file"
@@ -234,7 +244,7 @@ display_info() {
 cleanup() {
     if [ $? -ne 0 ]; then
         print_error "Installation failed. Cleaning up..."
-        docker-compose down >/dev/null 2>&1 || true
+        $DOCKER_COMPOSE_CMD down >/dev/null 2>&1 || true
     fi
 }
 

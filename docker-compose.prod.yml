@@ -1,5 +1,5 @@
 # Production Docker Compose using images from GitHub Container Registry
-# Usage: docker-compose -f docker-compose.prod.yml up -d
+# Usage: docker compose -f docker-compose.prod.yml up -d
 
 services:
   # Tor Hidden Service (Simple Mode - No Vanity Address)
