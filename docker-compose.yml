@@ -99,13 +99,13 @@ services:
       timeout: 10s
       retries: 3
 
-  liquidsoap:
+  streamer:
     build:
       context: ./docker/liquidsoap
       dockerfile: Dockerfile
     volumes:
       - ezstream_playlist:/var/log/ezstream
-      - liquidsoap_logs:/var/log/liquidsoap
+      - streamer_logs:/var/log/streamer
     networks:
       - app-network
     restart: unless-stopped
@@ -113,7 +113,7 @@ services:
       - icecast
       - ipfs
     healthcheck:
-      test: ["CMD-SHELL", "pgrep liquidsoap"]
+      test: ["CMD-SHELL", "pgrep -f 'python3.*streamer.py'"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -245,7 +245,7 @@ volumes:
     driver: local
   ezstream_playlist:
     driver: local
-  liquidsoap_logs:
+  streamer_logs:
     driver: local
   redis_data:
     driver: local

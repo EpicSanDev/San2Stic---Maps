@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting LiquidSoap setup..."
+echo "Starting Python-based radio streamer setup..."
 
 # Create silence file if it doesn't exist
 SILENCE_FILE="/var/log/ezstream/silence.mp3"
@@ -40,10 +40,10 @@ while ! curl -s http://icecast:8000/status.xsl >/dev/null 2>&1; do
   sleep 5
 done
 
-echo "Icecast is ready, starting LiquidSoap..."
+echo "Icecast is ready, starting Python radio streamer..."
 
 # Create log directory
-mkdir -p /var/log/liquidsoap
+mkdir -p /var/log/streamer
 
-# Start LiquidSoap with the configuration
-liquidsoap /liquidsoap.liq
+# Start the Python streamer
+python3 /streamer.py
