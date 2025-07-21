@@ -24,8 +24,8 @@ services:
   # Backend API
   backend:
     build:
-      context: ./backend
-      dockerfile: ../infra/Dockerfile.backend
+      context: .
+      dockerfile: infra/Dockerfile.backend
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://san2stic:secure_password_change_this@db:5432/san2stic

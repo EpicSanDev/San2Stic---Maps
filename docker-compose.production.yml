@@ -101,8 +101,8 @@ services:
   # Enhanced Backend with Security Improvements
   backend:
     build:
-      context: ./backend
-      dockerfile: ../infra/Dockerfile.backend
+      context: .
+      dockerfile: infra/Dockerfile.backend
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://san2stic:${POSTGRES_PASSWORD}@db:5432/san2stic
