@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { generateToken } = require('../utils/jwt'); // Utilisation de la fonction spécifique
-const User = require('../models/user');
+const { User } = require('../models');
 
 exports.signup = async (req, res) => {
   try {

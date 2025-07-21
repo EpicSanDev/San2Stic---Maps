@@ -1,5 +1,4 @@
-const Recording = require('../models/recording');
-const User = require('../models/user');
+const { Recording, User } = require('../models');
 const { uploadToIPFS, gatewayUrl } = require('../config/ipfs');
 const blockchainService = require('../services/blockchainService');
 const { v4: uuidv4 } = require('uuid');
@@ -70,6 +69,7 @@ exports.getAllRecordings = async (req, res) => {
       },
       include: [{
         model: User,
+        as: 'creator',
         attributes: ['id', 'email', 'username', 'reputation']
       }],
       limit: parseInt(limit),
@@ -198,6 +198,7 @@ exports.getUserRecordings = async (req, res) => {
       },
       include: [{
         model: User,
+        as: 'creator',
         attributes: ['id', 'email', 'username']
       }],
       limit: parseInt(limit),
@@ -236,6 +237,7 @@ exports.getRecordingsByLocation = async (req, res) => {
       },
       include: [{
         model: User,
+        as: 'creator',
         attributes: ['id', 'email', 'username', 'reputation']
       }],
       limit: parseInt(limit),

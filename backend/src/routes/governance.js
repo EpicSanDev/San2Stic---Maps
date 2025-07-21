@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, requireRole } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validation');
+const { validateRequest } = require('../middleware/validationMiddleware');
 const Joi = require('joi');
 const { User, Proposal, Vote } = require('../models');
 const { Op } = require('sequelize');

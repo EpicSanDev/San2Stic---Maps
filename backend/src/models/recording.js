@@ -3,6 +3,14 @@ const { DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
   const Recording = sequelize.define('Recording', {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    userId: { 
+      type: DataTypes.UUID, 
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id'
+      }
+    },
     blockchainId: { type: DataTypes.INTEGER, allowNull: true, unique: true },
     title: { type: DataTypes.STRING(100), allowNull: false },
     description: { type: DataTypes.TEXT, allowNull: true },

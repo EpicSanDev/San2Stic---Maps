@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validation');
+const { validateRequest } = require('../middleware/validationMiddleware');
 const Joi = require('joi');
 const { User, Recording, Like, Bookmark, Follow, Share, Playlist, PlaylistRecording, Rating } = require('../models');
 const { Op } = require('sequelize');

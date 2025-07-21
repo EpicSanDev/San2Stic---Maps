@@ -100,7 +100,19 @@ models.Rating.belongsTo(models.User, { foreignKey: 'userId' });
 models.Rating.belongsTo(models.Recording, { foreignKey: 'recordingId' });
 
 const initDB = async () => {
-  await sequelize.sync();
+  // Force sync to handle schema changes (drops existing tables)
+  // WARNING: This will delete all existing data!
+  // In production, use proper migrations instead of force: true
+  const shouldForceSync = process.env.NODE_ENV !== 'production';
+  
+  if (shouldForceSync) {
+    console.log('⚠️  WARNING: Force syncing database - all data will be lost!');
+    await sequelize.sync({ force: true });
+    console.log('✅ Database synced successfully with force: true');
+  } else {
+    await sequelize.sync();
+    console.log('✅ Database synced successfully');
+  }
 };
 
 module.exports = { 

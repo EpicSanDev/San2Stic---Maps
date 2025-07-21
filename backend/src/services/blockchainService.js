@@ -1,6 +1,5 @@
 const { ethers } = require('ethers');
-const User = require('../models/user');
-const Recording = require('../models/recording');
+const { User, Recording } = require('../models');
 
 // Mock ABIs for testing when contract artifacts are not available
 const mockABI = [

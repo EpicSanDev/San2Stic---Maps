@@ -1,6 +1,5 @@
 const bcrypt = require('bcryptjs');
-const User = require('../models/user');
-const Recording = require('../models/recording');
+const { User, Recording } = require('../models');
 
 exports.getProfile = async (req, res) => {
   try {
