@@ -1,0 +1,9 @@
+# San2Stic Radio Playlist
+# LiquidSoap will read this file and automatically reload when changed
+
+#EXTM3U
+#EXTINF:30,San2Stic Radio - Silence (Fallback)
+/var/log/ezstream/silence.mp3
+
+# Les nouveaux fichiers audio uploadés seront ajoutés automatiquement ici
+# New uploaded audio files will be automatically added here

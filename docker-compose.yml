@@ -99,12 +99,13 @@ services:
       timeout: 10s
       retries: 3
 
-  ezstream:
+  liquidsoap:
     build:
-      context: ./docker/ezstream
+      context: ./docker/liquidsoap
       dockerfile: Dockerfile
     volumes:
       - ezstream_playlist:/var/log/ezstream
+      - liquidsoap_logs:/var/log/liquidsoap
     networks:
       - app-network
     restart: unless-stopped
@@ -112,7 +113,7 @@ services:
       - icecast
       - ipfs
     healthcheck:
-      test: ["CMD-SHELL", "pgrep ezstream"]
+      test: ["CMD-SHELL", "pgrep liquidsoap"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -243,6 +244,8 @@ volumes:
   icecast_logs:
     driver: local
   ezstream_playlist:
+    driver: local
+  liquidsoap_logs:
     driver: local
   redis_data:
     driver: local

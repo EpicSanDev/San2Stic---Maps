@@ -1,6 +1,7 @@
 const { Recording, User } = require('../models');
 const { uploadToIPFS, gatewayUrl } = require('../config/ipfs');
 const blockchainService = require('../services/blockchainService');
+const radioService = require('../services/radioService');
 const { v4: uuidv4 } = require('uuid');
 const Joi = require('joi');
 const fs = require('fs');
@@ -128,27 +129,23 @@ exports.createRecording = async (req, res) => {
 
       const ipfsResult = await uploadToIPFS(req.file.buffer, filename, metadata);
 
-      // Add to ezstream playlist (with error handling)
+      // Add to radio playlist using the new radio service
       try {
-        const playlistPath = '/var/log/ezstream/playlist.m3u';
-        const playlistEntry = `#EXTINF:-1,${artist} - ${title}\n${ipfsResult.url}\n`;
+        const trackAdded = radioService.addTrackToPlaylist({
+          url: ipfsResult.url,
+          artist: artist,
+          title: title,
+          duration: req.body.duration || -1
+        });
         
-        // Ensure directory exists
-        const path = require('path');
-        const dir = path.dirname(playlistPath);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
+        if (trackAdded) {
+          console.log(`Successfully added track to radio: ${artist} - ${title}`);
+        } else {
+          console.warn(`Failed to add track to radio: ${artist} - ${title}`);
         }
-        
-        // Create playlist file if it doesn't exist
-        if (!fs.existsSync(playlistPath)) {
-          fs.writeFileSync(playlistPath, '#EXTM3U\n');
-        }
-        
-        fs.appendFileSync(playlistPath, playlistEntry);
-      } catch (playlistError) {
-        console.warn('Failed to update playlist:', playlistError.message);
-        // Don't fail the entire request if playlist update fails
+      } catch (radioError) {
+        console.error('Radio service error:', radioError.message);
+        // Don't fail the entire request if radio update fails
       }
       
       const duration = req.body.duration || 0;
