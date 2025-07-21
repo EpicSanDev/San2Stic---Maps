@@ -1,9 +1,9 @@
 const router = require('express').Router();
 const { getProfile, updateProfile, getUserRecordings } = require('../controllers/userController');
-const { authenticate } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/auth');
 
-router.get('/me', authenticate, getProfile);
-router.put('/me', authenticate, updateProfile);
+router.get('/me', authenticateToken, getProfile);
+router.put('/me', authenticateToken, updateProfile);
 router.get('/:id/recordings', getUserRecordings);
 
 module.exports = router;

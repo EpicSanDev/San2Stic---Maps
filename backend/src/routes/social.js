@@ -145,7 +145,7 @@ router.delete('/recordings/:id/bookmark', authenticateToken, async (req, res) =>
 // Follow/Unfollow a user
 router.post('/users/:id/follow', authenticateToken, async (req, res) => {
   try {
-    const followingId = parseInt(req.params.id);
+    const followingId = req.params.id;
     const followerId = req.user.id;
 
     if (followerId === followingId) {
@@ -184,7 +184,7 @@ router.post('/users/:id/follow', authenticateToken, async (req, res) => {
 // Unfollow a user
 router.delete('/users/:id/follow', authenticateToken, async (req, res) => {
   try {
-    const followingId = parseInt(req.params.id);
+    const followingId = req.params.id;
     const followerId = req.user.id;
 
     const follow = await Follow.findOne({
