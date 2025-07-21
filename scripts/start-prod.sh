@@ -5,6 +5,21 @@
 
 set -e
 
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Determine which Docker Compose command to use
+if docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command_exists docker-compose; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+else
+    echo "❌ Error: Neither 'docker compose' nor 'docker-compose' is available."
+    exit 1
+fi
+
 # Configuration
 GITHUB_REPOSITORY=${1:-"your-username/san2stic-maps"}
 COMPOSE_FILE="docker-compose.prod.yml"
@@ -18,6 +33,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}🚀 Starting San2Stic Maps in Production Mode${NC}"
+echo -e "${BLUE}Using Docker Compose command: $DOCKER_COMPOSE_CMD${NC}"
 echo -e "${BLUE}Repository: ${GITHUB_REPOSITORY}${NC}"
 echo ""
 
@@ -63,11 +79,11 @@ fi
 
 # Stop any existing containers
 echo -e "${BLUE}🛑 Stopping existing containers...${NC}"
-docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" down --remove-orphans || true
+$DOCKER_COMPOSE_CMD -f "$COMPOSE_FILE" --env-file "$ENV_FILE" down --remove-orphans || true
 
 # Start the application
 echo -e "${BLUE}🚀 Starting application...${NC}"
-docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
+$DOCKER_COMPOSE_CMD -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
 
 # Wait a moment for containers to start
 echo -e "${BLUE}⏳ Waiting for containers to start...${NC}"
@@ -75,16 +91,16 @@ sleep 10
 
 # Check container status
 echo -e "${BLUE}📊 Container Status:${NC}"
-docker-compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" ps
+$DOCKER_COMPOSE_CMD -f "$COMPOSE_FILE" --env-file "$ENV_FILE" ps
 
 echo ""
 echo -e "${GREEN}🎉 Application started successfully!${NC}"
 echo ""
 echo -e "${BLUE}📋 Useful commands:${NC}"
-echo -e "${YELLOW}   View logs:        docker-compose -f ${COMPOSE_FILE} logs -f [service]${NC}"
-echo -e "${YELLOW}   Check status:     docker-compose -f ${COMPOSE_FILE} ps${NC}"
-echo -e "${YELLOW}   Stop application: docker-compose -f ${COMPOSE_FILE} down${NC}"
-echo -e "${YELLOW}   Restart service:  docker-compose -f ${COMPOSE_FILE} restart [service]${NC}"
+echo -e "${YELLOW}   View logs:        $DOCKER_COMPOSE_CMD -f ${COMPOSE_FILE} logs -f [service]${NC}"
+echo -e "${YELLOW}   Check status:     $DOCKER_COMPOSE_CMD -f ${COMPOSE_FILE} ps${NC}"
+echo -e "${YELLOW}   Stop application: $DOCKER_COMPOSE_CMD -f ${COMPOSE_FILE} down${NC}"
+echo -e "${YELLOW}   Restart service:  $DOCKER_COMPOSE_CMD -f ${COMPOSE_FILE} restart [service]${NC}"
 echo ""
 echo -e "${BLUE}🌐 Access points:${NC}"
 echo -e "${YELLOW}   Web Interface: http://localhost${NC}"
