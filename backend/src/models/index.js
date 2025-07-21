@@ -9,6 +9,7 @@ const Playlist = require('./playlist');
 const PlaylistRecording = require('./playlistRecording');
 const Proposal = require('./proposal');
 const Vote = require('./vote');
+const Rating = require('./rating');
 
 // Initialize models
 const models = {
@@ -21,7 +22,8 @@ const models = {
   Playlist: Playlist(sequelize),
   PlaylistRecording: PlaylistRecording(sequelize),
   Proposal: Proposal(sequelize),
-  Vote: Vote(sequelize)
+  Vote: Vote(sequelize),
+  Rating: Rating(sequelize)
 };
 
 // Define associations
@@ -41,12 +43,14 @@ models.User.hasMany(models.Share, { foreignKey: 'userId' });
 models.User.hasMany(models.Playlist, { foreignKey: 'userId' });
 models.User.hasMany(models.Proposal, { foreignKey: 'creatorId', as: 'proposals' });
 models.User.hasMany(models.Vote, { foreignKey: 'userId' });
+models.User.hasMany(models.Rating, { foreignKey: 'userId' });
 
 // Recording associations
 models.Recording.belongsTo(models.User, { foreignKey: 'userId', as: 'creator' });
 models.Recording.hasMany(models.Like, { foreignKey: 'recordingId' });
 models.Recording.hasMany(models.Bookmark, { foreignKey: 'recordingId' });
 models.Recording.hasMany(models.Share, { foreignKey: 'recordingId' });
+models.Recording.hasMany(models.Rating, { foreignKey: 'recordingId' });
 models.Recording.belongsToMany(models.Playlist, { 
   through: models.PlaylistRecording, 
   foreignKey: 'recordingId',
@@ -90,6 +94,10 @@ models.Proposal.hasMany(models.Vote, { foreignKey: 'proposalId' });
 // Vote associations
 models.Vote.belongsTo(models.Proposal, { foreignKey: 'proposalId' });
 models.Vote.belongsTo(models.User, { foreignKey: 'userId' });
+
+// Rating associations
+models.Rating.belongsTo(models.User, { foreignKey: 'userId' });
+models.Rating.belongsTo(models.Recording, { foreignKey: 'recordingId' });
 
 const initDB = async () => {
   await sequelize.sync();

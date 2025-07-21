@@ -3,7 +3,7 @@ const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const { validateRequest } = require('../middleware/validation');
 const Joi = require('joi');
-const { User, Recording, Like, Bookmark, Follow, Share, Playlist, PlaylistRecording } = require('../models');
+const { User, Recording, Like, Bookmark, Follow, Share, Playlist, PlaylistRecording, Rating } = require('../models');
 const { Op } = require('sequelize');
 
 // Validation schemas
@@ -18,10 +18,14 @@ const addToPlaylistSchema = Joi.object({
   recordingId: Joi.number().integer().required()
 });
 
+const ratingSchema = Joi.object({
+  rating: Joi.number().integer().min(1).max(5).required()
+});
+
 // Like/Unlike a recording
 router.post('/recordings/:id/like', authenticateToken, async (req, res) => {
   try {
-    const recordingId = parseInt(req.params.id);
+    const recordingId = req.params.id;
     const userId = req.user.id;
 
     // Check if recording exists
@@ -55,7 +59,7 @@ router.post('/recordings/:id/like', authenticateToken, async (req, res) => {
 // Remove like from recording
 router.delete('/recordings/:id/like', authenticateToken, async (req, res) => {
   try {
-    const recordingId = parseInt(req.params.id);
+    const recordingId = req.params.id;
     const userId = req.user.id;
 
     const like = await Like.findOne({
@@ -81,7 +85,7 @@ router.delete('/recordings/:id/like', authenticateToken, async (req, res) => {
 // Bookmark/Unbookmark a recording
 router.post('/recordings/:id/bookmark', authenticateToken, async (req, res) => {
   try {
-    const recordingId = parseInt(req.params.id);
+    const recordingId = req.params.id;
     const userId = req.user.id;
 
     // Check if recording exists
@@ -115,7 +119,7 @@ router.post('/recordings/:id/bookmark', authenticateToken, async (req, res) => {
 // Remove bookmark from recording
 router.delete('/recordings/:id/bookmark', authenticateToken, async (req, res) => {
   try {
-    const recordingId = parseInt(req.params.id);
+    const recordingId = req.params.id;
     const userId = req.user.id;
 
     const bookmark = await Bookmark.findOne({
@@ -207,7 +211,7 @@ router.delete('/users/:id/follow', authenticateToken, async (req, res) => {
 // Share a recording
 router.post('/recordings/:id/share', authenticateToken, async (req, res) => {
   try {
-    const recordingId = parseInt(req.params.id);
+    const recordingId = req.params.id;
     const userId = req.user.id;
     const { platform } = req.body;
 
@@ -233,10 +237,10 @@ router.post('/recordings/:id/share', authenticateToken, async (req, res) => {
 // Get social data for a recording
 router.get('/recordings/:id/social', authenticateToken, async (req, res) => {
   try {
-    const recordingId = parseInt(req.params.id);
+    const recordingId = req.params.id;
     const userId = req.user.id;
 
-    const [recording, liked, bookmarked, following] = await Promise.all([
+    const [recording, liked, bookmarked, following, userRating] = await Promise.all([
       Recording.findByPk(recordingId, {
         include: [{ model: User, as: 'creator', attributes: ['id'] }]
       }),
@@ -244,20 +248,27 @@ router.get('/recordings/:id/social', authenticateToken, async (req, res) => {
       Bookmark.findOne({ where: { userId, recordingId } }),
       recording?.creator ? Follow.findOne({ 
         where: { followerId: userId, followingId: recording.creator.id } 
-      }) : null
+      }) : null,
+      Rating.findOne({ where: { userId, recordingId } })
     ]);
 
     if (!recording) {
       return res.status(404).json({ message: 'Recording not found' });
     }
 
+    const averageRating = recording.ratingCount > 0 ? 
+      (recording.totalRating / recording.ratingCount).toFixed(1) : 0;
+
     res.json({
       liked: !!liked,
       bookmarked: !!bookmarked,
       following: !!following,
+      userRating: userRating ? userRating.rating : null,
       likes: recording.likes || 0,
       bookmarks: recording.bookmarks || 0,
-      shares: recording.shares || 0
+      shares: recording.shares || 0,
+      averageRating: parseFloat(averageRating),
+      totalRatings: recording.ratingCount || 0
     });
   } catch (error) {
     console.error('Error fetching social data:', error);
@@ -406,6 +417,147 @@ router.get('/users/following', authenticateToken, async (req, res) => {
     res.json(users);
   } catch (error) {
     console.error('Error fetching following list:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Rate a recording
+router.post('/recordings/:id/rate', authenticateToken, validateRequest(ratingSchema), async (req, res) => {
+  try {
+    const recordingId = req.params.id;
+    const userId = req.user.id;
+    const { rating } = req.body;
+
+    // Check if recording exists
+    const recording = await Recording.findByPk(recordingId);
+    if (!recording) {
+      return res.status(404).json({ message: 'Recording not found' });
+    }
+
+    // Check if user has already rated this recording
+    const existingRating = await Rating.findOne({
+      where: { userId, recordingId }
+    });
+
+    if (existingRating) {
+      // Update existing rating
+      const oldRating = existingRating.rating;
+      existingRating.rating = rating;
+      await existingRating.save();
+
+      // Update recording's total rating
+      const newTotalRating = recording.totalRating - oldRating + rating;
+      await Recording.update(
+        { totalRating: newTotalRating },
+        { where: { id: recordingId } }
+      );
+
+      res.json({ 
+        message: 'Rating updated successfully',
+        averageRating: recording.ratingCount > 0 ? (newTotalRating / recording.ratingCount).toFixed(1) : 0
+      });
+    } else {
+      // Create new rating
+      await Rating.create({ userId, recordingId, rating });
+
+      // Update recording's rating statistics
+      const newTotalRating = recording.totalRating + rating;
+      const newRatingCount = recording.ratingCount + 1;
+      
+      await Recording.update(
+        { 
+          totalRating: newTotalRating,
+          ratingCount: newRatingCount
+        },
+        { where: { id: recordingId } }
+      );
+
+      res.status(201).json({ 
+        message: 'Rating submitted successfully',
+        averageRating: (newTotalRating / newRatingCount).toFixed(1)
+      });
+    }
+  } catch (error) {
+    console.error('Error rating recording:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Get rating for a recording by current user
+router.get('/recordings/:id/rating', authenticateToken, async (req, res) => {
+  try {
+    const recordingId = req.params.id;
+    const userId = req.user.id;
+
+    const rating = await Rating.findOne({
+      where: { userId, recordingId }
+    });
+
+    const recording = await Recording.findByPk(recordingId, {
+      attributes: ['totalRating', 'ratingCount']
+    });
+
+    if (!recording) {
+      return res.status(404).json({ message: 'Recording not found' });
+    }
+
+    const averageRating = recording.ratingCount > 0 ? 
+      (recording.totalRating / recording.ratingCount).toFixed(1) : 0;
+
+    res.json({
+      userRating: rating ? rating.rating : null,
+      averageRating: parseFloat(averageRating),
+      totalRatings: recording.ratingCount
+    });
+  } catch (error) {
+    console.error('Error fetching rating:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Remove rating from recording
+router.delete('/recordings/:id/rate', authenticateToken, async (req, res) => {
+  try {
+    const recordingId = req.params.id;
+    const userId = req.user.id;
+
+    const rating = await Rating.findOne({
+      where: { userId, recordingId }
+    });
+
+    if (!rating) {
+      return res.status(404).json({ message: 'Rating not found' });
+    }
+
+    const recording = await Recording.findByPk(recordingId);
+    if (!recording) {
+      return res.status(404).json({ message: 'Recording not found' });
+    }
+
+    // Remove rating and update recording statistics
+    const removedRating = rating.rating;
+    await rating.destroy();
+
+    const newTotalRating = Math.max(0, recording.totalRating - removedRating);
+    const newRatingCount = Math.max(0, recording.ratingCount - 1);
+
+    await Recording.update(
+      { 
+        totalRating: newTotalRating,
+        ratingCount: newRatingCount
+      },
+      { where: { id: recordingId } }
+    );
+
+    const averageRating = newRatingCount > 0 ? 
+      (newTotalRating / newRatingCount).toFixed(1) : 0;
+
+    res.json({ 
+      message: 'Rating removed successfully',
+      averageRating: parseFloat(averageRating)
+    });
+  } catch (error) {
+    console.error('Error removing rating:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

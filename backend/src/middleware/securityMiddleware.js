@@ -32,17 +32,17 @@ const uploadLimiter = createRateLimiter(
 const securityHeaders = helmet({
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "ws:", "wss:", "https:", "http://localhost:*", "http://ipfs:*"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'", "blob:", "data:", "https:", "http://ipfs:*"],
-      frameSrc: ["'none'"],
-      workerSrc: ["'self'", "blob:"],
-      manifestSrc: ["'self'"]
+      defaultSrc: ['\'self\''],
+      styleSrc: ['\'self\'', '\'unsafe-inline\'', 'https://unpkg.com', 'https://fonts.googleapis.com'],
+      scriptSrc: ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\''],
+      imgSrc: ['\'self\'', 'data:', 'https:', 'blob:'],
+      connectSrc: ['\'self\'', 'ws:', 'wss:', 'https:', 'http://localhost:*', 'http://ipfs:*'],
+      fontSrc: ['\'self\'', 'https://fonts.gstatic.com', 'data:'],
+      objectSrc: ['\'none\''],
+      mediaSrc: ['\'self\'', 'blob:', 'data:', 'https:', 'http://ipfs:*'],
+      frameSrc: ['\'none\''],
+      workerSrc: ['\'self\'', 'blob:'],
+      manifestSrc: ['\'self\'']
     },
   },
   crossOriginEmbedderPolicy: false,

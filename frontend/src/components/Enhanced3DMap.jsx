@@ -14,7 +14,8 @@ import {
   PauseIcon,
   StarIcon,
   EyeIcon,
-  HeartIcon
+  HeartIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { 
   SpeakerWaveIcon as SpeakerWaveIconSolid,
@@ -24,6 +25,8 @@ import {
 import { cn } from '../utils/cn';
 import { GlassCard } from './ui/GlassCard';
 import { AudioPlayer } from './ui/AudioPlayer';
+import { socialAPI } from '../utils/api';
+import { useNotification } from '../contexts/NotificationContext';
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 
@@ -206,6 +209,33 @@ const Audio3DMarker = ({
 const Enhanced3DPopup = ({ recording, onClose, onPlay, isPlaying }) => {
   const [currentRating, setCurrentRating] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
+  const [socialData, setSocialData] = useState(null);
+  const [isLoadingSocial, setIsLoadingSocial] = useState(true);
+  const [error, setError] = useState(null);
+  const { success, error: showError, warning } = useNotification();
+
+  // Load social data when component mounts
+  useEffect(() => {
+    const loadSocialData = async () => {
+      try {
+        setIsLoadingSocial(true);
+        setError(null);
+        const data = await socialAPI.getSocialData(recording.id);
+        setSocialData(data);
+        setCurrentRating(data.userRating || 0);
+        setIsLiked(data.liked || false);
+      } catch (err) {
+        console.error('Error loading social data:', err);
+        setError(err.message);
+      } finally {
+        setIsLoadingSocial(false);
+      }
+    };
+
+    if (recording.id) {
+      loadSocialData();
+    }
+  }, [recording.id]);
 
   const formatDuration = (seconds) => {
     if (!seconds) return 'Unknown duration';
@@ -214,18 +244,72 @@ const Enhanced3DPopup = ({ recording, onClose, onPlay, isPlaying }) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const handleRate = (rating) => {
-    setCurrentRating(rating);
-    // TODO: Implement rating API call
+  const handleRate = async (rating) => {
+    try {
+      setError(null);
+      const result = await socialAPI.rateRecording(recording.id, rating);
+      
+      if (result.offline) {
+        warning('Rating will be saved when you\'re back online');
+        setCurrentRating(rating);
+      } else {
+        success('Rating saved successfully');
+        setCurrentRating(rating);
+        
+        // Update social data
+        const updatedData = await socialAPI.getSocialData(recording.id);
+        setSocialData(updatedData);
+      }
+    } catch (err) {
+      console.error('Error rating recording:', err);
+      setError(err.message);
+      showError('Failed to save rating');
+      // Reset rating on error
+      setCurrentRating(socialData?.userRating || 0);
+    }
   };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    // TODO: Implement like API call
+  const handleLike = async () => {
+    try {
+      setError(null);
+      const newLikedState = !isLiked;
+      
+      const result = newLikedState 
+        ? await socialAPI.likeRecording(recording.id)
+        : await socialAPI.unlikeRecording(recording.id);
+      
+      if (result.offline) {
+        warning(`${newLikedState ? 'Like' : 'Unlike'} will be saved when you're back online`);
+        setIsLiked(newLikedState);
+      } else {
+        success(`Recording ${newLikedState ? 'liked' : 'unliked'} successfully`);
+        setIsLiked(newLikedState);
+        
+        // Update social data
+        const updatedData = await socialAPI.getSocialData(recording.id);
+        setSocialData(updatedData);
+      }
+    } catch (err) {
+      console.error('Error toggling like:', err);
+      setError(err.message);
+      showError('Failed to save like');
+      // Reset like state on error
+      setIsLiked(socialData?.liked || false);
+    }
   };
 
   return (
     <GlassCard className="w-96 max-w-sm relative overflow-hidden">
+      {/* Error Message */}
+      {error && (
+        <div className="m-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="flex items-center">
+            <ExclamationTriangleIcon className="w-5 h-5 text-red-600 dark:text-red-400 mr-2" />
+            <span className="text-sm text-red-700 dark:text-red-300">{error}</span>
+          </div>
+        </div>
+      )}
+
       {/* Header with close button */}
       <div className="flex items-start justify-between p-6 pb-4">
         <div className="flex-1 min-w-0">
@@ -313,26 +397,41 @@ const Enhanced3DPopup = ({ recording, onClose, onPlay, isPlaying }) => {
       <div className="px-6 pb-6">
         {/* Rating */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                onClick={() => handleRate(star)}
-                className="transition-colors"
-              >
-                {star <= currentRating ? (
-                  <StarIconSolid className="w-5 h-5 text-yellow-400" />
-                ) : (
-                  <StarIcon className="w-5 h-5 text-gray-300 dark:text-gray-600 hover:text-yellow-400" />
-                )}
-              </button>
-            ))}
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => handleRate(star)}
+                  className="transition-colors disabled:cursor-not-allowed"
+                  disabled={isLoadingSocial}
+                >
+                  {star <= currentRating ? (
+                    <StarIconSolid className="w-5 h-5 text-yellow-400" />
+                  ) : (
+                    <StarIcon className="w-5 h-5 text-gray-300 dark:text-gray-600 hover:text-yellow-400" />
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            {!isLoadingSocial && socialData && (
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">
+                  {socialData.averageRating > 0 ? socialData.averageRating : '—'}
+                </span>
+                <span className="text-xs ml-1">
+                  ({socialData.totalRatings} rating{socialData.totalRatings !== 1 ? 's' : ''})
+                </span>
+              </div>
+            )}
           </div>
           
           <button
             onClick={handleLike}
+            disabled={isLoadingSocial}
             className={cn(
-              "flex items-center space-x-2 px-3 py-1.5 rounded-full transition-all",
+              "flex items-center space-x-2 px-3 py-1.5 rounded-full transition-all disabled:cursor-not-allowed disabled:opacity-50",
               isLiked 
                 ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
                 : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400"
@@ -343,7 +442,9 @@ const Enhanced3DPopup = ({ recording, onClose, onPlay, isPlaying }) => {
             ) : (
               <HeartIcon className="w-4 h-4" />
             )}
-            <span className="text-sm font-medium">{recording.upvotes || 0}</span>
+            <span className="text-sm font-medium">
+              {isLoadingSocial ? '...' : (socialData?.likes || 0)}
+            </span>
           </button>
         </div>
 

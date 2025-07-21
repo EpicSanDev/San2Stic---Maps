@@ -4,11 +4,11 @@ const Recording = require('../models/recording');
 
 // Mock ABIs for testing when contract artifacts are not available
 const mockABI = [
-  "function isUserRegistered(address) external view returns (bool)",
-  "function getUser(address) external view returns (tuple(uint256 id, string username, uint256 reputation, uint256 totalRecordings, uint256 totalVotes))",
-  "function getRecording(uint256) external view returns (tuple(int256 latitude, int256 longitude, string ipfsHash), tuple(string title, string description, string[] tags, uint256 duration, uint8 quality, string equipment, uint8 license, uint8 status), tuple(uint256 upvotes, uint256 downvotes, uint256 totalRating, uint256 ratingCount))",
-  "function getRecordingsByLocation(int256, int256, int256, int256, uint256, uint256) external view returns (uint256[])",
-  "function userReputation(address) external view returns (uint256)"
+  'function isUserRegistered(address) external view returns (bool)',
+  'function getUser(address) external view returns (tuple(uint256 id, string username, uint256 reputation, uint256 totalRecordings, uint256 totalVotes))',
+  'function getRecording(uint256) external view returns (tuple(int256 latitude, int256 longitude, string ipfsHash), tuple(string title, string description, string[] tags, uint256 duration, uint8 quality, string equipment, uint8 license, uint8 status), tuple(uint256 upvotes, uint256 downvotes, uint256 totalRating, uint256 ratingCount))',
+  'function getRecordingsByLocation(int256, int256, int256, int256, uint256, uint256) external view returns (uint256[])',
+  'function userReputation(address) external view returns (uint256)'
 ];
 
 let San2SticMapMainABI, San2SticMapABI, RecordingManagerABI, LicenseManagerABI, VotingSystemABI;
