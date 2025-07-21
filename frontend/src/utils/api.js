@@ -118,4 +118,62 @@ export const socialAPI = {
   },
 };
 
+// Recordings API functions
+export const recordingsAPI = {
+  // Get all recordings with basic pagination
+  getAllRecordings: async (page = 1, limit = 50, status = 'APPROVED') => {
+    try {
+      const response = await api.get('/recordings', {
+        params: { page, limit, status }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch recordings');
+    }
+  },
+
+  // Advanced search with filters
+  searchRecordings: async (filters = {}) => {
+    try {
+      const response = await api.get('/recordings/search', {
+        params: filters
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to search recordings');
+    }
+  },
+
+  // Get recordings by location
+  getRecordingsByLocation: async (bounds, page = 1, limit = 50) => {
+    try {
+      const response = await api.get('/recordings/location', {
+        params: {
+          minLat: bounds.minLat,
+          maxLat: bounds.maxLat,
+          minLng: bounds.minLng,
+          maxLng: bounds.maxLng,
+          page,
+          limit
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch recordings by location');
+    }
+  },
+
+  // Get user's recordings
+  getUserRecordings: async (page = 1, limit = 20) => {
+    try {
+      const response = await api.get('/recordings/user', {
+        params: { page, limit }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch user recordings');
+    }
+  },
+};
+
 export default api;

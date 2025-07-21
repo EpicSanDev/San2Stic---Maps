@@ -5,6 +5,7 @@ const blockchainService = require('../services/blockchainService');
 const { v4: uuidv4 } = require('uuid');
 const Joi = require('joi');
 const fs = require('fs');
+const { Op } = require('sequelize');
 
 const createRecordingSchema = Joi.object({
   title: Joi.string().max(100).required(),
@@ -24,6 +25,37 @@ const createRecordingSchema = Joi.object({
     'CC_BY_NC_ND',
     'PUBLIC_DOMAIN'
   ).optional()
+});
+
+const searchRecordingsSchema = Joi.object({
+  query: Joi.string().max(100).optional(),
+  quality: Joi.string().valid('LOW', 'MEDIUM', 'HIGH', 'LOSSLESS').optional(),
+  license: Joi.string().valid(
+    'ALL_RIGHTS_RESERVED',
+    'CC_BY',
+    'CC_BY_SA',
+    'CC_BY_NC',
+    'CC_BY_NC_SA',
+    'CC_BY_ND',
+    'CC_BY_NC_ND',
+    'PUBLIC_DOMAIN'
+  ).optional(),
+  tags: Joi.string().optional(), // comma-separated
+  minRating: Joi.number().min(1).max(5).optional(),
+  maxRating: Joi.number().min(1).max(5).optional(),
+  minDuration: Joi.number().min(0).optional(), // in seconds
+  maxDuration: Joi.number().min(0).optional(),
+  createdAfter: Joi.date().optional(),
+  createdBefore: Joi.date().optional(),
+  minLat: Joi.number().min(-90).max(90).optional(),
+  maxLat: Joi.number().min(-90).max(90).optional(),
+  minLng: Joi.number().min(-180).max(180).optional(),
+  maxLng: Joi.number().min(-180).max(180).optional(),
+  creatorId: Joi.string().optional(),
+  sortBy: Joi.string().valid('created', 'rating', 'likes', 'title', 'artist', 'duration').default('created'),
+  sortOrder: Joi.string().valid('ASC', 'DESC').default('DESC'),
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(20)
 });
 
 exports.getAllRecordings = async (req, res) => {
@@ -276,6 +308,212 @@ exports.deleteRecording = async (req, res) => {
     res.json({ message: 'Recording deleted successfully' });
   } catch (err) {
     console.error('Error deleting recording:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.searchRecordings = async (req, res) => {
+  try {
+    const { error, value } = searchRecordingsSchema.validate(req.query);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    const {
+      query,
+      quality,
+      license,
+      tags,
+      minRating,
+      maxRating,
+      minDuration,
+      maxDuration,
+      createdAfter,
+      createdBefore,
+      minLat,
+      maxLat,
+      minLng,
+      maxLng,
+      creatorId,
+      sortBy,
+      sortOrder,
+      page,
+      limit
+    } = value;
+
+    const offset = (page - 1) * limit;
+    const whereClause = {
+      moderationStatus: 'APPROVED',
+      isActive: true
+    };
+
+    // Text search in title, description, and artist
+    if (query) {
+      whereClause[Op.or] = [
+        { title: { [Op.iLike]: `%${query}%` } },
+        { description: { [Op.iLike]: `%${query}%` } },
+        { artist: { [Op.iLike]: `%${query}%` } }
+      ];
+    }
+
+    // Quality filter
+    if (quality) {
+      whereClause.quality = quality;
+    }
+
+    // License filter
+    if (license) {
+      whereClause.license = license;
+    }
+
+    // Tags filter (search in JSON array)
+    if (tags) {
+      const tagArray = tags.split(',').map(tag => tag.trim());
+      whereClause.tags = {
+        [Op.overlap]: tagArray
+      };
+    }
+
+    // Rating filter (based on average rating)
+    if (minRating || maxRating) {
+      const ratingConditions = {};
+      if (minRating && maxRating) {
+        // Calculate rating range based on totalRating and ratingCount
+        ratingConditions[Op.and] = [
+          { ratingCount: { [Op.gt]: 0 } },
+          {
+            [Op.or]: [
+              // For recordings with ratings
+              {
+                [Op.and]: [
+                  { ratingCount: { [Op.gt]: 0 } },
+                  {
+                    // totalRating / ratingCount >= minRating AND <= maxRating
+                    totalRating: {
+                      [Op.and]: [
+                        { [Op.gte]: minRating * 1 }, // Will be multiplied by ratingCount in SQL
+                        { [Op.lte]: maxRating * 999 } // Approximation for max range
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ];
+      } else if (minRating) {
+        ratingConditions[Op.and] = [
+          { ratingCount: { [Op.gt]: 0 } },
+          { totalRating: { [Op.gte]: minRating * 1 } }
+        ];
+      } else if (maxRating) {
+        ratingConditions[Op.or] = [
+          { ratingCount: { [Op.eq]: 0 } }, // Include unrated recordings
+          {
+            [Op.and]: [
+              { ratingCount: { [Op.gt]: 0 } },
+              { totalRating: { [Op.lte]: maxRating * 999 } }
+            ]
+          }
+        ];
+      }
+      Object.assign(whereClause, ratingConditions);
+    }
+
+    // Duration filter
+    if (minDuration !== undefined || maxDuration !== undefined) {
+      whereClause.duration = {};
+      if (minDuration !== undefined) {
+        whereClause.duration[Op.gte] = minDuration;
+      }
+      if (maxDuration !== undefined) {
+        whereClause.duration[Op.lte] = maxDuration;
+      }
+    }
+
+    // Date range filter
+    if (createdAfter || createdBefore) {
+      whereClause.createdAt = {};
+      if (createdAfter) {
+        whereClause.createdAt[Op.gte] = new Date(createdAfter);
+      }
+      if (createdBefore) {
+        whereClause.createdAt[Op.lte] = new Date(createdBefore);
+      }
+    }
+
+    // Location filter (bounding box)
+    if (minLat && maxLat && minLng && maxLng) {
+      whereClause.latitude = { [Op.between]: [parseFloat(minLat), parseFloat(maxLat)] };
+      whereClause.longitude = { [Op.between]: [parseFloat(minLng), parseFloat(maxLng)] };
+    }
+
+    // Creator filter
+    if (creatorId) {
+      whereClause.UserId = creatorId;
+    }
+
+    // Build order clause
+    let orderClause;
+    switch (sortBy) {
+      case 'rating':
+        // Sort by average rating (totalRating / ratingCount)
+        orderClause = [
+          [
+            require('sequelize').literal('CASE WHEN "ratingCount" > 0 THEN "totalRating"::float / "ratingCount" ELSE 0 END'),
+            sortOrder
+          ]
+        ];
+        break;
+      case 'likes':
+        orderClause = [['likes', sortOrder]];
+        break;
+      case 'title':
+        orderClause = [['title', sortOrder]];
+        break;
+      case 'artist':
+        orderClause = [['artist', sortOrder]];
+        break;
+      case 'duration':
+        orderClause = [['duration', sortOrder]];
+        break;
+      case 'created':
+      default:
+        orderClause = [['createdAt', sortOrder]];
+        break;
+    }
+
+    const recordings = await Recording.findAndCountAll({
+      where: whereClause,
+      include: [{
+        model: User,
+        attributes: ['id', 'email', 'username', 'reputation'],
+        as: 'creator'
+      }],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: orderClause,
+      distinct: true // Important for correct count with includes
+    });
+
+    // Add calculated average rating to each recording
+    const recordingsWithRating = recordings.rows.map(recording => {
+      const recordingData = recording.toJSON();
+      recordingData.averageRating = recordingData.ratingCount > 0 
+        ? (recordingData.totalRating / recordingData.ratingCount).toFixed(1)
+        : null;
+      return recordingData;
+    });
+
+    res.json({
+      recordings: recordingsWithRating,
+      totalCount: recordings.count,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(recordings.count / limit),
+      searchFilters: value // Return applied filters for debugging
+    });
+  } catch (err) {
+    console.error('Error searching recordings:', err);
     res.status(500).json({ error: err.message });
   }
 };
